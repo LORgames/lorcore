@@ -1,13 +1,13 @@
-project "CastleRushClient"
+project "lorcore"
   -- Settings
-  kind "ConsoleApp"
+  kind "StaticLib"
   language "C++"
 
   --flags { "OmitDefaultLibrary" }
 
   -- This Project
   if isWinRT then
-    kind "WindowedApp"
+    kind "StaticLib"
     if isWP80 then
       system "windowsphone8.0"
     elseif isWP81 then
