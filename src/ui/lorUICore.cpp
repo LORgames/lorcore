@@ -19,7 +19,7 @@ struct lorUICore
   uint32_t windowWidth;
   uint32_t windowHeight;
 
-  lorGame *pGame;
+  lorUIApp *pApp;
 };
 
 //Control
@@ -55,9 +55,9 @@ void lorUICore_Render(lorUICore *pUI, lorGraphicsCore *pGraphics)
 
 }
 
-void lorUICore_RegisterGame(lorUICore *pUI, lorGame *pGame)
+void lorUICore_RegisterGame(lorUICore *pUI, lorUIApp *pApp)
 {
-  pUI->pGame = pGame;
+  pUI->pApp = pApp;
 }
 
 // Functions filtered to lorUICore
@@ -68,7 +68,7 @@ void lorUICore_PointDown(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint3
 
 
   //UI didn't use the tap so pass to the game
-  if (pUI->pGame != nullptr)
+  if (pUI->pApp != nullptr)
   {
 
   }
@@ -80,19 +80,12 @@ void lorUICore_PointUp(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_
 
 
   //UI didn't use the tap so pass to the game
-  if (pUI->pGame != nullptr)
+  if (pUI->pApp != nullptr)
   {
     int worldX, worldY;
     lorPoint screenPos;
     screenPos.x = (float)pointX;
     screenPos.y = (float)pointY;
-
-    lorRect mapZone;
-    lorGame_GetMapSpace(pUI->pGame, &mapZone);
-
-    lorGame_ConvertScreenSpaceToWorldSpace(&worldX, &worldY, screenPos, mapZone);
-
-    lorGame_TrySpawnUnit(pUI->pGame, worldX, worldY, 0);
   }
 }
 
@@ -102,7 +95,7 @@ void lorUICore_PointMoved(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint
 
 
   //UI didn't use the motion so pass to the game
-  if (pUI->pGame != nullptr)
+  if (pUI->pApp != nullptr)
   {
 
   }
@@ -114,7 +107,7 @@ void lorUICore_PointTap(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32
 
 
   //UI didn't use the tap so pass to the game
-  if (pUI->pGame != nullptr)
+  if (pUI->pApp != nullptr)
   {
 
   }
@@ -126,7 +119,7 @@ void lorUICore_PointDoubleTap(lorUICore *pUI, uint8_t pointID, uint32_t pointX, 
 
 
   //UI didn't use the tap so pass to the game
-  if (pUI->pGame != nullptr)
+  if (pUI->pApp != nullptr)
   {
 
   }

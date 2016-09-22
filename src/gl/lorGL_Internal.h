@@ -6,8 +6,8 @@
 #include "lorMath.h"
 #include "lorCore.h"
 #include "lorSettings.h"
-
 #include "lorLineDrawer.h"
+#include "SDL2\SDL.h"
 
 struct lorGraphicsCore
 {
@@ -26,7 +26,7 @@ struct lorTexture
 
   int w, h; //Width and height
 
-#ifdef SDLRENDER
+#ifdef RENDERER_SDL
   SDL_Texture *pSDLTexture;
 #endif
 };

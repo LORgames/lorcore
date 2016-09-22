@@ -96,7 +96,7 @@ bool lorSocket_Connect(lorSocket **ppSocket, char *serverName, uint32_t port)
   {
     sockaddr_in clientService;
     clientService.sin_family = AF_INET;
-    clientService.sin_port = htons(port);
+    clientService.sin_port = htons((uint16_t)port);
     clientService.sin_addr = dest;
 
     int socketResult = connect(pSocket->sockID, (const sockaddr*)&clientService, sizeof(clientService));

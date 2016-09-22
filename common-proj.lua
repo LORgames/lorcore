@@ -2,7 +2,6 @@ flags { "ExtraWarnings" }
 
 local proj = project()
 targetname(proj.name)
---flags { "C++11", "NoMinimalRebuild" }
 flags { "C++11", "NoPCH", "NoIncrementalLink" }
 exceptionhandling "Off"
 

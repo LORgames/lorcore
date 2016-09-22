@@ -2,6 +2,7 @@
 #define LOR_GRAPHICSCORE
 
 #include "lorCore.h"
+#include "SDL2\SDL.h"
 
 struct lorGraphicsCore;
 struct lorLineDrawer;

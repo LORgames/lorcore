@@ -2,6 +2,7 @@
 #define LOR_STRING
 
 #include "lorCore.h"
+#include <stdarg.h>
 
 inline size_t lorStrlen(const char *string)
 {

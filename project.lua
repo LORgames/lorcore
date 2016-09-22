@@ -1,26 +1,25 @@
 project "lorcore"
+  dofile "common-proj.lua"
+
   -- Settings
   kind "StaticLib"
   language "C++"
 
-  --flags { "OmitDefaultLibrary" }
-
   -- This Project
   if isWinRT then
-    kind "StaticLib"
     if isWP80 then
       system "windowsphone8.0"
     elseif isWP81 then
       system "windowsphone8.1"
-	  files { "Assets_wp81/**.png" }
+	    files { "Assets_wp81/**.png" }
       files { "CastleRushClient_wp81.appxmanifest" }
     elseif isWinRT81 then
       system "windowsstore8.1"
       files { "Assets_w81/**.png" }
       files { "CastleRushClient_w81.appxmanifest" }
-	  files { "CastleRushClient_TemporaryKey.pfx" }
-	  certificatefile "CastleRushClient_TemporaryKey.pfx"
-	  certificatethumbprint "A408A41CFBC0CA22B0BFF7F73C930BF475B79187"
+	    files { "CastleRushClient_TemporaryKey.pfx" }
+	    certificatefile "CastleRushClient_TemporaryKey.pfx"
+	    certificatethumbprint "A408A41CFBC0CA22B0BFF7F73C930BF475B79187"
     end
 
     disablewarnings { "4530" } -- Ignore exception handler warnings...
@@ -29,45 +28,37 @@ project "lorcore"
     consumewinrtextension "false"
     generatewinmd "false"
 
-    includedirs { "libraries/src/SDL2/include" }
-    files { "Assets/**.png", "Assets/**.wav", "Assets/**.ogg", "Assets/**.txt" }
     files { "libraries/src/SDL2/src/main/winrt/SDL_winrt_main_NonXAML.cpp", "SDL2.dll" }
     defines { "ASSETDIR=\"Assets/\"", "lorLogToFile" }
   elseif isAndroid then
     system "android"
-	kind "SharedLib"
+	  kind "SharedLib"
 
-	toolset "clang"
-	toolchainversion "3.6"
-	stl "gnu stl static"
+	  toolset "clang"
+	  toolchainversion "3.6"
+	  stl "gnu stl static"
 
-    includedirs { "libraries/src/SDL2/include" }
     files { "libraries/src/SDL2/src/main/android/SDL_android_main.c" }
-	defines { "ASSETDIR=\"\"" }
+	  defines { "ASSETDIR=\"\"" }
   elseif isIOS then
     system "ios"
     kind "WindowedApp"
   end
 
-  files { "clientsrc/**.cpp", "clientsrc/**.h", "clientsrc/**rc" }
-  files { "clientproject.lua" }
+  files { "src/**.cpp", "src/**.h", "src/**rc" }
+  files { "project.lua", "common-proj.lua" }
 
-  includedirs { "libraries/src" }
-  includedirs { "clientsrc" }
-  includedirs { "clientsrc/comms" }
-  includedirs { "clientsrc/game" }
-  includedirs { "clientsrc/game/physics" }
-  includedirs { "clientsrc/game/units" }
-  includedirs { "clientsrc/profile" }
-  includedirs { "clientsrc/gl" }
-
-  -- SDL_mixer
-  includedirs { "libraries/src/SDL2_mixer" }
-  files { "libraries/src/SDL2_mixer/**.h", "libraries/src/SDL2_mixer/**.c" }
-  defines { "OGG_MUSIC" }
+  includedirs { "external/src" }
+  includedirs { "src" }
+  includedirs { "src/comms" }
+  includedirs { "src/game" }
+  includedirs { "src/game/physics" }
+  includedirs { "src/game/units" }
+  includedirs { "src/profile" }
+  includedirs { "src/gl" }
 
   -- Common settings
-  defines "SDLRENDER"
+  defines "RENDERER_SDL"
   links { "SDL2" }
 
   -- Configurations
@@ -133,5 +124,3 @@ project "lorcore"
 
   configuration { "windows", "Release", "vs2013" }
     buildoptions { "/Zo" }
-
-  dofile "common-proj.lua"

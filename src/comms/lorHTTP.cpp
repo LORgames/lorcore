@@ -2,7 +2,7 @@
 #include "lorCore.h"
 
 #include <stdio.h>
-#include "curl/curl.h"
+//#include "curl/curl.h"
 
 void lorAuth_Init()
 {

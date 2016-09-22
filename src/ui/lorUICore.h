@@ -2,7 +2,6 @@
 #define LOR_UICORE
 
 #include "lorMath.h"
-#include "lorGame.h"
 #include "gl/lorGraphicsCore.h"
 
 struct lorUICore;
@@ -16,7 +15,7 @@ void lorUICore_Update(lorUICore *pUI, float dt);  //UI actually has dt
 void lorUICore_Render(lorUICore *pUI, lorGraphicsCore *pGraphics);
 
 //Registers the active game to pass input to. Game may be nullptr
-void lorUICore_RegisterGame(lorUICore *pUI, lorGame *pGame);
+void lorUICore_RegisterGame(lorUICore *pUI, lorUIApp *pApp);
 
 // Functions filtered to lorUICore
 void lorUICore_PointDown(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY);

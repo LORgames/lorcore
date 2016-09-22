@@ -1,7 +1,7 @@
 #include "lorFile.h"
 #include "lorCore.h"
 
-#include "SDL2/include/SDL_filesystem.h"
+#include "SDL2/SDL_filesystem.h"
 
 FILE* lorFile_OpenUserFile(const char *pFilename, const char *pMode)
 {

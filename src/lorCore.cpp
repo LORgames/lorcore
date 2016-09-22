@@ -1,7 +1,6 @@
 #include "lorCore.h"
 
 #include "gl/lorGraphicsCore.h"
-#include "game/lorGame.h"
 #include "comms/lorSocket.h"
 #include "ui/lorUICore.h"
 #include "lorSettings.h"
@@ -17,7 +16,7 @@ struct lorCore
   lorAudioEngine *pAudioCore;
   lorUICore *pUI;
 
-  lorGame *pGame;
+  lorUIApp *pApp;
 
   lorSettings Settings;
 };
@@ -42,7 +41,7 @@ void lorProcessMessageQueue(lorCore *pCore)
         pCore->windowHeight = pEvent->window.data2;
 
         lorGraphicsCore_Resize(pCore->pGLCore, pCore->windowWidth, pCore->windowHeight);
-        lorGame_Resized(pCore->pGame, pCore->windowWidth, pCore->windowHeight);
+        //lorGame_Resized(pCore->pGame, pCore->windowWidth, pCore->windowHeight);
         lorUICore_ScreenResized(pCore->pUI, pCore->windowWidth, pCore->windowHeight);
 
         lorLog("Window %d resized to %dx%d\n", pEvent->window.windowID, pEvent->window.data1, pEvent->window.data2);
@@ -162,10 +161,7 @@ bool lorInit(uint32_t flags)
 
   isRunning = true;
 
-  lorGame_Init(&pCore->pGame, 0, pCore->pGLCore, pCore->pAudioCore);
-  lorGame_Resized(pCore->pGame, pCore->windowWidth, pCore->windowHeight);
-
-  lorUICore_RegisterGame(pCore->pUI, pCore->pGame);
+  lorUICore_RegisterGame(pCore->pUI, pCore->pApp);
 
   //Ping the server
   //lorSocket *pSocket;
@@ -184,15 +180,13 @@ bool lorInit(uint32_t flags)
     nextTime += GlobalFrameMS;
 
     //UPDATE
-    lorGame_Step(pCore->pGame);
+    pCore->pApp->Step(GlobalFrameMS / 1000.f);
 
     //RENDER
     lorGraphicsCore_StartFrame(pCore->pGLCore);
-    lorGame_Render(pCore->pGame, pCore->pGLCore);
+    pCore->pApp->Render(pCore->pGLCore);
     lorGraphicsCore_EndFrame(pCore->pGLCore);
   }
-
-  lorGame_Destroy(&pCore->pGame);
 
   lorUICore_Deinit(&pCore->pUI);
   lorAudio_Deinit(&pCore->pAudioCore);

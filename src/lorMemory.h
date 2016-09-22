@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <cstring>
-#include "SDL2/include/SDL.h"
+#include <stdlib.h>
 
 #define TRACK_MEMORY 0
 

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <cstring>
 #include "lorMath.h"
-#include "SDL2/include/SDL.h"
+//#include "SDL2/include/SDL.h"
 
 #include "lorMemory.h"
 #include "lorString.h"
@@ -44,6 +44,13 @@ enum WindowInfo
 
 //These structs will be passed around a lot
 struct lorGraphicsCore;
+
+struct lorUIApp
+{
+  void (*Step)(float dt);
+  void (*Render)(lorGraphicsCore *pGL);
+};
+
 
 #if defined(_MSC_VER) && defined(lorLogToFile)
 #include "lorFile.h"
