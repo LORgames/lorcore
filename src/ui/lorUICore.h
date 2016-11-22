@@ -14,9 +14,6 @@ void lorUICore_ScreenResized(lorUICore *pUI, uint32_t width, uint32_t height);
 void lorUICore_Update(lorUICore *pUI, float dt);  //UI actually has dt
 void lorUICore_Render(lorUICore *pUI, lorGraphicsCore *pGraphics);
 
-//Registers the active game to pass input to. Game may be nullptr
-void lorUICore_RegisterGame(lorUICore *pUI, lorUIApp *pApp);
-
 // Functions filtered to lorUICore
 void lorUICore_PointDown(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY);
 void lorUICore_PointUp(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY);

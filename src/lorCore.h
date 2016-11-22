@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <cstring>
 #include "lorMath.h"
-//#include "SDL2/include/SDL.h"
 
 #include "lorMemory.h"
 #include "lorString.h"
@@ -22,12 +21,6 @@
 #define PRId64 "lld"
 #endif
 
-enum
-{
-  DefaultWindowWidth = 1280,
-  DefaultWindowHeight = 720,
-};
-
 enum LORWindowFlags
 {
   LOR_WF_NONE = 0,
@@ -36,19 +29,19 @@ enum LORWindowFlags
   LOR_WF_NO_RESIZE = 1 << 2,
 };
 
-enum WindowInfo
-{
-  GlobalFrameRate = 30,
-  GlobalFrameMS = 33,
-};
-
 //These structs will be passed around a lot
 struct lorGraphicsCore;
 
-struct lorUIApp
+struct lorApp
 {
   void (*Step)(float dt);
   void (*Render)(lorGraphicsCore *pGL);
+
+  int Width;
+  int Height;
+  float FrameMilliseconds;
+
+  const char *pName;
 };
 
 
@@ -69,8 +62,8 @@ struct lorUIApp
 
 #define lorAssert(check, fmt, ...) do { if(!(check)) { lorLog(fmt, ##__VA_ARGS__); lorBreak(); }} while(0)
 
-bool lorInit(uint32_t flags);     //App has just been launched
-bool lorExit();     //App is trying to exit
+bool lorInit(lorApp *pApp, uint32_t flags); //App has just been launched
+bool lorExit(); //App is trying to exit
 bool lorSuspend();  //App is trying to minimize or go into low power mode
 
 #endif //LOR_CORE

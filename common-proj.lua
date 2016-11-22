@@ -2,7 +2,7 @@ flags { "ExtraWarnings" }
 
 local proj = project()
 targetname(proj.name)
-flags { "C++11", "NoPCH", "NoIncrementalLink" }
+flags { "C++11", "NoPCH", "NoIncrementalLink", "FatalWarnings" }
 exceptionhandling "Off"
 
 -- Directories
@@ -68,12 +68,12 @@ filter { "architecture:x86", "system:windowsphone8.0" }
   defines { "WIN32", "_WINDOWS" }
   targetdir "builds/bin_wp80win32"
   debugdir "builds/bin_wp80win32"
-  
+
 filter { "architecture:x86", "system:windowsphone8.1" }
   defines { "WIN32", "_WINDOWS" }
   targetdir "builds/bin_wp81win32"
   debugdir "builds/bin_wp81win32"
-  
+
 filter { "architecture:x86", "system:windowsstore8.1" }
   defines { "WIN32", "_WINDOWS" }
   targetdir "builds/bin_winRT81win32"
@@ -92,7 +92,7 @@ filter { "architecture:arm", "system:windowsphone8.0" }
     "d3d11",
     "dxgi",
   }
-  
+
 filter { "architecture:arm", "system:windowsphone8.1" }
   defines { "WINRT", "_WINDOWS" }
   targetdir "builds/bin_wp81arm"
@@ -106,7 +106,7 @@ filter { "architecture:arm", "system:windowsphone8.1" }
     "d3d11",
     "dxgi",
   }
-	  
+
 filter { "architecture:arm", "system:windowsstore8.1" }
   defines { "WINRT", "_WINDOWS" }
   targetdir "builds/bin_winRT81arm"

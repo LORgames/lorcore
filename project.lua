@@ -51,11 +51,9 @@ project "lorcore"
   includedirs { "external/src" }
   includedirs { "src" }
   includedirs { "src/comms" }
-  includedirs { "src/game" }
-  includedirs { "src/game/physics" }
-  includedirs { "src/game/units" }
   includedirs { "src/profile" }
   includedirs { "src/gl" }
+  includedirs { "src/ui" }
 
   -- Common settings
   defines "RENDERER_SDL"

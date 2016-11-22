@@ -19,7 +19,7 @@ struct lorUICore
   uint32_t windowWidth;
   uint32_t windowHeight;
 
-  lorUIApp *pApp;
+  lorApp *pApp;
 };
 
 //Control
@@ -45,82 +45,38 @@ void lorUICore_ScreenResized(lorUICore *pUI, uint32_t width, uint32_t height)
   pUI->windowHeight = height;
 }
 
-void lorUICore_Update(lorUICore *pUI, float dt)
+void lorUICore_Update(lorUICore * /*pUI*/, float /*dt*/)
 {
   //Doesn't do anything yet
 }
 
-void lorUICore_Render(lorUICore *pUI, lorGraphicsCore *pGraphics)
+void lorUICore_Render(lorUICore * /*pUI*/, lorGraphicsCore * /*pGraphics*/)
 {
-
-}
-
-void lorUICore_RegisterGame(lorUICore *pUI, lorUIApp *pApp)
-{
-  pUI->pApp = pApp;
+  //TODO: Render the UI?
 }
 
 // Functions filtered to lorUICore
-
-void lorUICore_PointDown(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY)
+void lorUICore_PointDown(lorUICore * /*pUI*/, uint8_t /*pointID*/, uint32_t /*pointX*/, uint32_t /*pointY*/)
 {
   //TODO: Process UI here
-
-
-  //UI didn't use the tap so pass to the game
-  if (pUI->pApp != nullptr)
-  {
-
-  }
 }
 
-void lorUICore_PointUp(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY)
+void lorUICore_PointUp(lorUICore * /*pUI*/, uint8_t /*pointID*/, uint32_t /*pointX*/, uint32_t /*pointY*/)
 {
   //TODO: Process UI here
-
-
-  //UI didn't use the tap so pass to the game
-  if (pUI->pApp != nullptr)
-  {
-    int worldX, worldY;
-    lorPoint screenPos;
-    screenPos.x = (float)pointX;
-    screenPos.y = (float)pointY;
-  }
 }
 
-void lorUICore_PointMoved(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY)
+void lorUICore_PointMoved(lorUICore * /*pUI*/, uint8_t /*pointID*/, uint32_t /*pointX*/, uint32_t /*pointY*/)
 {
   //TODO: Process UI here
-
-
-  //UI didn't use the motion so pass to the game
-  if (pUI->pApp != nullptr)
-  {
-
-  }
 }
 
-void lorUICore_PointTap(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY)
+void lorUICore_PointTap(lorUICore * /*pUI*/, uint8_t /*pointID*/, uint32_t /*pointX*/, uint32_t /*pointY*/)
 {
   //TODO: Process UI here
-
-
-  //UI didn't use the tap so pass to the game
-  if (pUI->pApp != nullptr)
-  {
-
-  }
 }
 
-void lorUICore_PointDoubleTap(lorUICore *pUI, uint8_t pointID, uint32_t pointX, uint32_t pointY)
+void lorUICore_PointDoubleTap(lorUICore * /*pUI*/, uint8_t /*pointID*/, uint32_t /*pointX*/, uint32_t /*pointY*/)
 {
   //TODO: Process UI here
-
-
-  //UI didn't use the tap so pass to the game
-  if (pUI->pApp != nullptr)
-  {
-
-  }
 }

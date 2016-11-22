@@ -18,7 +18,7 @@ struct lorCore
   lorAudioEngine *pAudioCore;
   lorUICore *pUI;
 
-  lorUIApp *pApp;
+  lorApp *pApp;
 
   lorSettings Settings;
 };
@@ -102,7 +102,7 @@ void lorProcessMessageQueue(lorCore *pCore)
 }
 
 //App has just been launched
-bool lorInit(uint32_t flags)
+bool lorInit(lorApp *pApp, uint32_t flags)
 {
   lorLog("Starting client...");
 
@@ -114,11 +114,11 @@ bool lorInit(uint32_t flags)
 
   uint32_t windowFlags = SDL_WINDOW_SHOWN;
   SDL_DisplayMode mode;
-  int windowWidth = DefaultWindowWidth;
-  int windowHeight = DefaultWindowHeight;
+  int windowWidth = pApp->Width;
+  int windowHeight = pApp->Height;
 
-  Uint32 now = SDL_GetTicks();
-  Uint32 nextTime = now + GlobalFrameMS;
+  uint32_t now = SDL_GetTicks();
+  float nextTime = (float)now + pApp->FrameMilliseconds;
 
   if (flags & LOR_WF_FULLSCREEN)
     windowFlags |= SDL_WINDOW_FULLSCREEN;
@@ -136,7 +136,7 @@ bool lorInit(uint32_t flags)
   }
 
   //Create window
-  gWindow = SDL_CreateWindow("LORgames Castle Rush", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
+  gWindow = SDL_CreateWindow(pApp->pName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
 
   if (gWindow == NULL)
   {
@@ -163,14 +163,6 @@ bool lorInit(uint32_t flags)
 
   isRunning = true;
 
-  lorUICore_RegisterGame(pCore->pUI, pCore->pApp);
-
-  //Ping the server
-  //lorSocket *pSocket;
-  //if (!lorSocket_Connect(&pSocket, "220.237.74.59", 5659))
-  //  lorSocket_Connect(&pSocket, "192.168.0.21", 5659);
-  //lorSocket_Close(&pSocket);
-
   while (isRunning)
   {
     lorProcessMessageQueue(pCore);
@@ -178,11 +170,11 @@ bool lorInit(uint32_t flags)
     //Sort out sleep time
     now = SDL_GetTicks();
     if (now < nextTime)
-      SDL_Delay(nextTime - now);
-    nextTime += GlobalFrameMS;
+      SDL_Delay((uint32_t)(nextTime - now));
+    nextTime += pApp->FrameMilliseconds;
 
     //UPDATE
-    pCore->pApp->Step(GlobalFrameMS / 1000.f);
+    pCore->pApp->Step(pApp->FrameMilliseconds / 1000.f);
 
     //RENDER
     lorGraphicsCore_StartFrame(pCore->pGLCore);
