@@ -7,6 +7,8 @@
 #include "lorAudio.h"
 #include "lorHTTP.h"
 
+#include "SDL2\SDL.h"
+
 struct lorCore
 {
   int32_t windowWidth;

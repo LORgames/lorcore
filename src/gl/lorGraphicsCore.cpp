@@ -1,6 +1,7 @@
 #include "lorGraphicsCore.h"
 #include "lorGL_Internal.h"
 #include "lorTexture.h"
+#include "SDL2\SDL.h"
 
 bool lorGraphicsCore_Init(lorGraphicsCore **ppCore, SDL_Window *pWindow, lorSettings *pSettings)
 {
