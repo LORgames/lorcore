@@ -106,6 +106,10 @@ bool lorInit(lorApp *pApp, uint32_t flags)
 {
   lorLog("Starting client...");
 
+  lorAssert(pApp != nullptr, "App cannot be nullptr!");
+  lorAssert(pApp->Step != nullptr, "App Update cannot be nullptr!");
+  lorAssert(pApp->Render != nullptr, "App Render cannot be nullptr!");
+
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
     lorLog("SDL could not initialize! SDL_Error: %s", SDL_GetError());
@@ -153,6 +157,7 @@ bool lorInit(lorApp *pApp, uint32_t flags)
   lorAuth_Init();
 
   lorCore *pCore = lorAllocType(lorCore, 1);
+  pCore->pApp = pApp;
   SDL_GetWindowSize(gWindow, &pCore->windowWidth, &pCore->windowHeight);
 
   lorSettings_SetDefaults(&pCore->Settings);
