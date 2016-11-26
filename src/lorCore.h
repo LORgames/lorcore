@@ -31,17 +31,20 @@ enum LORWindowFlags
 
 //These structs will be passed around a lot
 struct lorGraphicsCore;
+struct lorCore;
 
-struct lorApp
+typedef void (lorAppResized)(void *pAppData, int newWidth, int newHeight);
+
+struct lorAppSettings
 {
-  void (*Step)(float dt);
-  void (*Render)(lorGraphicsCore *pGL);
-
   int Width;
   int Height;
   float FrameMilliseconds;
 
+  lorAppResized *pResizedFunc;
+
   const char *pName;
+  void *pAppData;
 };
 
 
@@ -62,8 +65,9 @@ struct lorApp
 
 #define lorAssert(check, fmt, ...) do { if(!(check)) { lorLog(fmt, ##__VA_ARGS__); lorBreak(); }} while(0)
 
-bool lorInit(lorApp *pApp, uint32_t flags); //App has just been launched
-bool lorExit(); //App is trying to exit
-bool lorSuspend();  //App is trying to minimize or go into low power mode
+bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags); //Startup the engine
+bool lorUpdate(lorCore *pCore, lorGraphicsCore **ppGL); // Update the engine, returns true if should keep running
+bool lorExit(lorCore **ppCore); // Cleanup the engine
+bool lorSuspend(lorCore *pCore); //App is trying to minimize or go into low power mode
 
 #endif //LOR_CORE

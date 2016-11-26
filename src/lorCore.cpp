@@ -11,26 +11,27 @@
 
 struct lorCore
 {
+  SDL_Window* gWindow = NULL;
+  SDL_Event event;  // Our event handle
   int32_t windowWidth;
   int32_t windowHeight;
+
+  uint32_t now;
+  float nextTime;
+
+  bool isRunning;
 
   lorGraphicsCore *pGLCore;
   lorAudioEngine *pAudioCore;
   lorUICore *pUI;
 
-  lorApp *pApp;
-
   lorSettings Settings;
+  lorAppSettings *pAppSettings;
 };
-
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
-bool isRunning = false;
-SDL_Event event;  // Our event handle
 
 void lorProcessMessageQueue(lorCore *pCore)
 {
-  SDL_Event *pEvent = &event;
+  SDL_Event *pEvent = &pCore->event;
 
   while (SDL_PollEvent(pEvent))
   {
@@ -43,8 +44,10 @@ void lorProcessMessageQueue(lorCore *pCore)
         pCore->windowHeight = pEvent->window.data2;
 
         lorGraphicsCore_Resize(pCore->pGLCore, pCore->windowWidth, pCore->windowHeight);
-        //lorGame_Resized(pCore->pGame, pCore->windowWidth, pCore->windowHeight);
         lorUICore_ScreenResized(pCore->pUI, pCore->windowWidth, pCore->windowHeight);
+
+        if(pCore->pAppSettings->pResizedFunc)
+          pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, pCore->windowWidth, pCore->windowHeight);
 
         lorLog("Window %d resized to %dx%d\n", pEvent->window.windowID, pEvent->window.data1, pEvent->window.data2);
         break;
@@ -60,7 +63,7 @@ void lorProcessMessageQueue(lorCore *pCore)
       case SDL_KEYUP:
         //lorLog("Key release detected (%i)", pEvent->key.keysym.scancode);
         if (pEvent->key.keysym.sym == SDLK_ESCAPE)
-          isRunning = false;
+          pCore->isRunning = false;
         else if (pEvent->key.keysym.sym == SDLK_PRINTSCREEN)
           lorGraphicsCore_TakeScreenshot(pCore->pGLCore);
 
@@ -94,7 +97,7 @@ void lorProcessMessageQueue(lorCore *pCore)
         break;
       case SDL_QUIT:
         lorLog("Quit requested, quitting.\n");
-        isRunning = false;
+        pCore->isRunning = false;
         break;
       }
     }
@@ -102,13 +105,11 @@ void lorProcessMessageQueue(lorCore *pCore)
 }
 
 //App has just been launched
-bool lorInit(lorApp *pApp, uint32_t flags)
+bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
 {
   lorLog("Starting client...");
 
-  lorAssert(pApp != nullptr, "App cannot be nullptr!");
-  lorAssert(pApp->Step != nullptr, "App Update cannot be nullptr!");
-  lorAssert(pApp->Render != nullptr, "App Render cannot be nullptr!");
+  lorAssert(pAppSettings != nullptr, "App cannot be nullptr!");
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
@@ -118,11 +119,8 @@ bool lorInit(lorApp *pApp, uint32_t flags)
 
   uint32_t windowFlags = SDL_WINDOW_SHOWN;
   SDL_DisplayMode mode;
-  int windowWidth = pApp->Width;
-  int windowHeight = pApp->Height;
-
-  uint32_t now = SDL_GetTicks();
-  float nextTime = (float)now + pApp->FrameMilliseconds;
+  int windowWidth = pAppSettings->Width;
+  int windowHeight = pAppSettings->Height;
 
   if (flags & LOR_WF_FULLSCREEN)
     windowFlags |= SDL_WINDOW_FULLSCREEN;
@@ -140,9 +138,9 @@ bool lorInit(lorApp *pApp, uint32_t flags)
   }
 
   //Create window
-  gWindow = SDL_CreateWindow(pApp->pName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
+  SDL_Window *pWindow = SDL_CreateWindow(pAppSettings->pName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
 
-  if (gWindow == NULL)
+  if (pWindow == NULL)
   {
     lorLog("Window could not be created! SDL_Error: %s\n", SDL_GetError());
     return false;
@@ -154,38 +152,56 @@ bool lorInit(lorApp *pApp, uint32_t flags)
     return false;
   }
 
+  //Create the core
+  lorCore *pCore = lorAllocType(lorCore, 1);
+  *ppCore = pCore;
+  pCore->gWindow = pWindow;
+
+  pCore->now = SDL_GetTicks();
+  pCore->nextTime = (float)pCore->now + pAppSettings->FrameMilliseconds;
+
   lorAuth_Init();
 
-  lorCore *pCore = lorAllocType(lorCore, 1);
-  pCore->pApp = pApp;
-  SDL_GetWindowSize(gWindow, &pCore->windowWidth, &pCore->windowHeight);
+  pCore->pAppSettings = pAppSettings;
+  SDL_GetWindowSize(pCore->gWindow, &pCore->windowWidth, &pCore->windowHeight);
 
   lorSettings_SetDefaults(&pCore->Settings);
-  lorGraphicsCore_Init(&pCore->pGLCore, gWindow, &pCore->Settings);
+  lorGraphicsCore_Init(&pCore->pGLCore, pCore->gWindow, &pCore->Settings);
   lorAudio_Init(&pCore->pAudioCore);
 
   lorUICore_Init(&pCore->pUI, pCore->windowWidth, pCore->windowHeight);
 
-  isRunning = true;
+  pCore->isRunning = true;
 
-  while (isRunning)
-  {
-    lorProcessMessageQueue(pCore);
+  //UPDATE
+  return true;
+}
 
-    //Sort out sleep time
-    now = SDL_GetTicks();
-    if (now < nextTime)
-      SDL_Delay((uint32_t)(nextTime - now));
-    nextTime += pApp->FrameMilliseconds;
+// Update the engine, returns true if should keep running
+bool lorUpdate(lorCore *pCore, lorGraphicsCore **ppGL)
+{
+  lorProcessMessageQueue(pCore);
 
-    //UPDATE
-    pCore->pApp->Step(pApp->FrameMilliseconds / 1000.f);
+  //Sort out sleep time
+  pCore->now = SDL_GetTicks();
+  if (pCore->now < pCore->nextTime)
+    SDL_Delay((uint32_t)(pCore->nextTime - pCore->now));
+  pCore->nextTime += pCore->pAppSettings->FrameMilliseconds;
 
-    //RENDER
-    lorGraphicsCore_StartFrame(pCore->pGLCore);
-    pCore->pApp->Render(pCore->pGLCore);
-    lorGraphicsCore_EndFrame(pCore->pGLCore);
-  }
+  if (ppGL)
+    *ppGL = pCore->pGLCore;
+
+  return pCore->isRunning;
+}
+
+//App is trying to exit
+bool lorExit(lorCore **ppCore)
+{
+  if (ppCore == nullptr || *ppCore == nullptr)
+    return false;
+
+  lorCore *pCore = *ppCore;
+  *ppCore = nullptr;
 
   lorUICore_Deinit(&pCore->pUI);
   lorAudio_Deinit(&pCore->pAudioCore);
@@ -194,13 +210,6 @@ bool lorInit(lorApp *pApp, uint32_t flags)
 
   lorAuth_Close();
 
-  lorExit();
-  return true;
-}
-
-//App is trying to exit
-bool lorExit()
-{
   if (!lorSocket_DeinitSystem())
     return false;
 
@@ -208,7 +217,7 @@ bool lorExit()
 }
 
 //App is trying to minimize or go into low power mode
-bool lorSuspend()
+bool lorSuspend(lorCore * /*pCore*/)
 {
   return false; //Did not successfully suspend
 }

@@ -18,8 +18,6 @@ struct lorUICore
 {
   uint32_t windowWidth;
   uint32_t windowHeight;
-
-  lorApp *pApp;
 };
 
 //Control
