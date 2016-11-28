@@ -13,8 +13,6 @@ struct lorCore
 {
   SDL_Window* gWindow = NULL;
   SDL_Event event;  // Our event handle
-  int32_t windowWidth;
-  int32_t windowHeight;
 
   uint32_t now;
   float nextTime;
@@ -40,14 +38,14 @@ void lorProcessMessageQueue(lorCore *pCore)
       switch (pEvent->window.event)
       {
       case SDL_WINDOWEVENT_RESIZED:
-        pCore->windowWidth = pEvent->window.data1;
-        pCore->windowHeight = pEvent->window.data2;
+        pCore->pAppSettings->Width = pEvent->window.data1;
+        pCore->pAppSettings->Height = pEvent->window.data2;
 
-        lorGraphicsCore_Resize(pCore->pGLCore, pCore->windowWidth, pCore->windowHeight);
-        lorUICore_ScreenResized(pCore->pUI, pCore->windowWidth, pCore->windowHeight);
+        lorGraphicsCore_Resize(pCore->pGLCore, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
+        lorUICore_ScreenResized(pCore->pUI, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
 
         if(pCore->pAppSettings->pResizedFunc)
-          pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, pCore->windowWidth, pCore->windowHeight);
+          pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
 
         lorLog("Window %d resized to %dx%d\n", pEvent->window.windowID, pEvent->window.data1, pEvent->window.data2);
         break;
@@ -119,8 +117,6 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
 
   uint32_t windowFlags = SDL_WINDOW_SHOWN;
   SDL_DisplayMode mode;
-  int windowWidth = pAppSettings->Width;
-  int windowHeight = pAppSettings->Height;
 
   if (flags & LOR_WF_FULLSCREEN)
     windowFlags |= SDL_WINDOW_FULLSCREEN;
@@ -133,12 +129,12 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
     if (SDL_GetCurrentDisplayMode(0, &mode) != 0)
       return false;
 
-    windowWidth = mode.w;
-    windowHeight = mode.h;
+    pAppSettings->Width = mode.w;
+    pAppSettings->Height = mode.h;
   }
 
   //Create window
-  SDL_Window *pWindow = SDL_CreateWindow(pAppSettings->pName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
+  SDL_Window *pWindow = SDL_CreateWindow(pAppSettings->pName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, pAppSettings->Width, pAppSettings->Height, windowFlags);
 
   if (pWindow == NULL)
   {
@@ -163,13 +159,13 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
   lorAuth_Init();
 
   pCore->pAppSettings = pAppSettings;
-  SDL_GetWindowSize(pCore->gWindow, &pCore->windowWidth, &pCore->windowHeight);
+  SDL_GetWindowSize(pCore->gWindow, &pAppSettings->Width, &pAppSettings->Height);
 
   lorSettings_SetDefaults(&pCore->Settings);
   lorGraphicsCore_Init(&pCore->pGLCore, pCore->gWindow, &pCore->Settings);
   lorAudio_Init(&pCore->pAudioCore);
 
-  lorUICore_Init(&pCore->pUI, pCore->windowWidth, pCore->windowHeight);
+  lorUICore_Init(&pCore->pUI, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
 
   pCore->isRunning = true;
 
