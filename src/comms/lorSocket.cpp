@@ -99,7 +99,7 @@ bool lorSocket_Connect(lorSocket **ppSocket, char *serverName, uint32_t port)
     clientService.sin_port = htons((uint16_t)port);
     clientService.sin_addr = dest;
 
-    int socketResult = connect(pSocket->sockID, (const sockaddr*)&clientService, sizeof(clientService));
+    int socketResult = (int)connect(pSocket->sockID, (const sockaddr*)&clientService, sizeof(clientService));
 
     if (socketResult == 0)
     {
@@ -136,9 +136,9 @@ bool lorSocket_Close(lorSocket **ppSocket)
   if (status == 0)
     status = closesocket((*ppSocket)->sockID);
 #else
-  int status = shutdown((*ppSocket)->sockID, SHUT_RDWR);
+  int status = (int)shutdown((*ppSocket)->sockID, SHUT_RDWR);
   if (status == 0)
-    status = close((*ppSocket)->sockID);
+    status = (int)close((*ppSocket)->sockID);
 #endif
 
   lorFree(*ppSocket);
@@ -149,7 +149,7 @@ bool lorSocket_Close(lorSocket **ppSocket)
 
 bool lorSocket_SendData(lorSocket *pSocket, const uint8_t *pBytes, uint16_t totalBytes)
 {
-  return (totalBytes != send(pSocket->sockID, (const char*)pBytes, totalBytes, NULL));
+  return (totalBytes != (int)send(pSocket->sockID, (const char*)pBytes, totalBytes, 0));
 }
 
 int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSize)
@@ -163,10 +163,10 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
   FD_ZERO(&readfds);
   FD_SET(pSocket->sockID, &readfds);
 
-  select(NULL, &readfds, nullptr, nullptr, &tv);
+  select(0, &readfds, nullptr, nullptr, &tv);
 
   if (FD_ISSET(pSocket->sockID, &readfds))
-    return recv(pSocket->sockID, (char*)pBytes, bufferSize, NULL);
+    return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
 
   return 0;
 }

@@ -46,9 +46,9 @@ inline float lorAbs(float val) { return fabsf(val); }
 inline double lorAbs(double val) { return fabs(val); }
 inline int lorAbs(int val) { int mask = (val >> (sizeof(int) * 8 - 1)); return (val + mask) ^ mask; } //8bits per byte
 
-template<typename T> inline T lorMin(T val0, T val1) { val0 < val1 ? return val0 : return val1; }
-template<typename T> inline T lorMax(T val0, T val1) { val0 > val1 ? return val0 : return val1; }
-template<typename T> inline T lorClamp(T val, T min, T max) { (val < min ? return min : (val > max ? return max : return val)); }
+template<typename T> inline T lorMin(T val0, T val1) { return (val0 < val1 ? val0 : val1); }
+template<typename T> inline T lorMax(T val0, T val1) { return (val0 > val1 ? val0 : val1); }
+template<typename T> inline T lorClamp(T val, T min, T max) { return (val < min ? min : (val > max ? max : val)); }
 
 typedef lorRectangleTemplate<float> lorRect;
 typedef lorPointTemplate<float> lorPoint;
