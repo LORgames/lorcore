@@ -1,4 +1,4 @@
-project "lorcore"
+project ("lorcore" .. (projectsuffix or ""))
   dofile "common-proj.lua"
 
   -- Settings
@@ -6,45 +6,6 @@ project "lorcore"
   language "C++"
 
   -- This Project
-  if isWinRT then
-    if isWP80 then
-      system "windowsphone8.0"
-    elseif isWP81 then
-      system "windowsphone8.1"
-	    files { "Assets_wp81/**.png" }
-      files { "CastleRushClient_wp81.appxmanifest" }
-    elseif isWinRT81 then
-      system "windowsstore8.1"
-      files { "Assets_w81/**.png" }
-      files { "CastleRushClient_w81.appxmanifest" }
-	    files { "CastleRushClient_TemporaryKey.pfx" }
-	    certificatefile "CastleRushClient_TemporaryKey.pfx"
-	    certificatethumbprint "A408A41CFBC0CA22B0BFF7F73C930BF475B79187"
-    end
-
-    disablewarnings { "4530" } -- Ignore exception handler warnings...
-
-    editandcontinue "Off"
-    consumewinrtextension "false"
-    generatewinmd "false"
-
-    files { "libraries/src/SDL2/src/main/winrt/SDL_winrt_main_NonXAML.cpp", "SDL2.dll" }
-    defines { "ASSETDIR=\"Assets/\"", "lorLogToFile" }
-  elseif isAndroid then
-    system "android"
-	  kind "SharedLib"
-
-	  toolset "clang"
-	  toolchainversion "3.6"
-	  stl "gnu stl static"
-
-    files { "libraries/src/SDL2/src/main/android/SDL_android_main.c" }
-	  defines { "ASSETDIR=\"\"" }
-  elseif isIOS then
-    system "ios"
-    kind "WindowedApp"
-  end
-
   files { "src/**.cpp", "src/**.h", "src/**rc" }
   files { "project.lua", "common-proj.lua" }
 
@@ -60,65 +21,78 @@ project "lorcore"
   links { "SDL2" }
 
   -- Configurations
-  if isWinRT then
-    filter { "files:**SDL_winrt_main_NonXAML.cpp" }
-      consumewinrtextension "true"
-
-    filter { "files:**.png" }
-      deploy "true"
-
-    filter { "files:SDL2.dll" }
-      deploy "true"
-  end
-
-  configuration { "Release" }
+  filter { "configurations:Release" }
     defines { "NDEBUG" }
-	  flags { "Optimize", "Symbols", "NoFramePointer" }
-	--flags { "NoBufferSecurityCheck" }
+    flags { "Optimize", "NoFramePointer" }
+    symbols "On"
+    --flags { "NoBufferSecurityCheck" }
 
   filter { "configurations:Debug", "system:not android" }
     defines { "_DEBUG" }
-	  flags { "Symbols" }
+    symbols "On"
 
   filter { "system:windows*", "system:not windows" }
-    prebuildcommands { "xcopy /y $(OutDir)SDL2.dll" }
+    disablewarnings { "4127", "4530" } -- Ignore conditional expression is constant and exception handler warnings
+    consumewinrtextension "false"
+    generatewinmd "false"
+    defaultlanguage "en-AU"
+    defines { "ASSETDIR=\"Assets/\"", "lorLogToFile" } -- Is ASSETDIR required here?
 
   filter { "architecture:x64", "system:windows" }
     defines { "WIN64" }
-	  libdirs { "libraries/win64" }
-	  links { "libcurl" }
+    libdirs { "external/libs/win64" }
+    --links { "libcurl" } -- Add this back when the lib is in the repo
 
   filter { "architecture:x64", "system:windowsstore8.1" }
     defines { "WIN64" }
-	  libdirs { "libraries/winRT81win64" }
+    libdirs { "external/libs/winRT81win64" }
 
   filter { "architecture:arm" }
     defines { "WINARM" }
 
   filter { "architecture:arm", "system:windowsphone8.0" }
-      libdirs { "libraries/wp80arm" }
+    libdirs { "external/libs/wp80arm" }
+
   filter { "architecture:arm", "system:windowsphone8.1" }
-      libdirs { "libraries/wp81arm" }
+    libdirs { "external/libs/wp81arm" }
+
   filter { "architecture:arm", "system:windowsstore8.1" }
-      libdirs { "libraries/winRT81arm" }
+    libdirs { "external/libs/winRT81arm" }
 
   filter { "architecture:x86", "system:windowsphone8.0" }
-      libdirs { "libraries/wp80win32" }
+    libdirs { "external/libs/wp80win32" }
+
   filter { "architecture:x86", "system:windowsphone8.1" }
-      libdirs { "libraries/wp81win32" }
+    libdirs { "external/libs/wp81win32" }
+
   filter { "architecture:x86", "system:windowsstore8.1" }
-      libdirs { "libraries/winRT81win32" }
+    libdirs { "external/libs/winRT81win32" }
 
   filter { "system:linux" }
-    libdirs { "libraries/linux" }
+    libdirs { "external/libs/linux" }
+
+  filter { "system:linux", "action:vs*" }
+    location "."
+    warnings "Off"
+    files { "external/src/**.h" }
+
+  filter { "system:android" }
+    kind "SharedLib" -- This probably doesn't need to happen
+    toolset "clang"
+    toolchainversion "3.6"
+    stl "gnu stl static"
+    defines { "ASSETDIR=\"\"" } -- Is ASSETDIR required here?
 
   filter { "system:android", "architecture:x86" }
-    libdirs { "libs/x86" }
+    libdirs { "external/libs/androidx86" }
+
   filter { "system:android", "architecture:ARM" }
-    libdirs { "libs/armeabi-v7a" }
+    libdirs { "external/libs/androidarm" }
 
   filter { "system:ios" }
-    libdirs { "libraries/iOSx86" }
+    libdirs { "external/libs/iOSx86" }
 
-  configuration { "windows", "Release", "vs2013" }
+  filter { "system:windows", "configurations:Release", "action:vs2013" }
     buildoptions { "/Zo" }
+
+  filter { }

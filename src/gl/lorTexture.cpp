@@ -166,7 +166,7 @@ lorTexture* lorTexture_Load(const char *filename, lorTextureType type, lorGraphi
     if (loaded)
       break;
     else
-      startingScale = (startingScale >> 1);
+      startingScale = (uint8_t)(startingScale >> 1);
   }
 
   lorFree(pFilenameBuffer);
@@ -215,10 +215,10 @@ void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x,
   if (pSrcRect != nullptr)
   {
     SDL_Rect _src;
-    _src.x = int(pSrcRect->x * pTexture->w);
-    _src.y = int(pSrcRect->y * pTexture->h);
-    _src.w = int(pSrcRect->w * pTexture->w);
-    _src.h = int(pSrcRect->h * pTexture->h);
+    _src.x = int(pSrcRect->x * (float)pTexture->w);
+    _src.y = int(pSrcRect->y * (float)pTexture->h);
+    _src.w = int(pSrcRect->w * (float)pTexture->w);
+    _src.h = int(pSrcRect->h * (float)pTexture->h);
 
     _dst.w = _src.w;
     _dst.h = _src.h;
@@ -247,10 +247,10 @@ void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x,
   if (pSrcRect != nullptr)
   {
     SDL_Rect _src;
-    _src.x = int(pSrcRect->x * pTexture->w);
-    _src.y = int(pSrcRect->y * pTexture->h);
-    _src.w = int(pSrcRect->w * pTexture->w);
-    _src.h = int(pSrcRect->h * pTexture->h);
+    _src.x = int(pSrcRect->x * (float)pTexture->w);
+    _src.y = int(pSrcRect->y * (float)pTexture->h);
+    _src.w = int(pSrcRect->w * (float)pTexture->w);
+    _src.h = int(pSrcRect->h * (float)pTexture->h);
 
     SDL_RenderCopyEx(pGL->pRenderer, pTexture->pSDLTexture, &_src, &_dst, 0, nullptr, (SDL_RendererFlip)flipMode);
   }

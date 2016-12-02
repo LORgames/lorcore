@@ -7,7 +7,7 @@
 #include "lorCore.h"
 #include "lorSettings.h"
 #include "lorLineDrawer.h"
-#include "SDL2\SDL.h"
+#include "SDL2/SDL.h"
 
 struct lorGraphicsCore
 {

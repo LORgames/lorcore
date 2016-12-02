@@ -14,7 +14,7 @@ inline size_t lorStrlen(const char *string)
 
 inline void lorStrcpy(char *strDestination, size_t destinationSize, const char *strSource)
 {
-  int i = 0;
+  size_t i = 0;
 
   if (destinationSize == 0)
     return; // Maybe we should lorStrlen here?
@@ -36,18 +36,14 @@ inline void lorStrcat(char *strDestination, size_t destinationSize, const char *
   if (writePos + 1 >= destinationSize)
     return;
 
-  while (true)
+  while (writePos != (destinationSize - 1) && strSource[readPos] != '\0')
   {
-    if (writePos == (destinationSize - 1) || strSource[readPos] == '\0')
-    {
-      strDestination[writePos] = '\0';
-      return;
-    }
-
     strDestination[writePos] = strSource[readPos];
     ++writePos;
     ++readPos;
   }
+
+  strDestination[writePos] = '\0';
 }
 
 inline int lorStrcmp(const char *strA, const char *strB)
