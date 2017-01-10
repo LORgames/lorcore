@@ -77,7 +77,6 @@ project ("lorcore" .. (projectsuffix or ""))
     files { "external/src/**.h" }
 
   filter { "system:android" }
-    kind "SharedLib" -- This probably doesn't need to happen
     toolset "clang"
     toolchainversion "3.6"
     stl "gnu stl static"
