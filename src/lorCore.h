@@ -60,7 +60,11 @@ struct lorAppSettings
 #else
 #include <signal.h>
 #define lorBreak() raise(SIGTRAP);
+#if ANDROID
+#define lorLog(fmt, ...) do { __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG", "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
+#else //!ANDROID
 #define lorLog(fmt, ...) do { printf("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
+#endif //ANDROID
 #endif
 
 #define lorAssert(check, fmt, ...) do { if(!(check)) { lorLog(fmt, ##__VA_ARGS__); lorBreak(); }} while(0)
