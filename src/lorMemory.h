@@ -2,7 +2,7 @@
 #define LOR_MEMORY
 
 #include <stdio.h>
-#include <cstring>
+#include "lorString.h"
 #include <stdlib.h>
 
 #define TRACK_MEMORY 0
@@ -16,17 +16,12 @@ enum { MemoryPadding = 64 };
 #define lorAllocType(type, count) (type*)lorAlloc(sizeof(type)*count)
 #endif
 
-
 inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)
 {
 #if TRACK_MEMORY
   void* pRealMemory = malloc(numBytes + MemoryPadding);
   void* pMemory = ((char*)pRealMemory + MemoryPadding);
-
-  char buffer[8];
-  lorStrcpy((char*)pRealMemory, 58, pFilename);
-  lorStrcat((char*)pRealMemory, 64, ":");
-  lorStrcat((char*)pRealMemory, 64, itoa(lineNumber, buffer, 10));
+  lorSprintf((char*)pRealMemory, MemoryPadding, "%s:%d", pFilename, lineNumber);
 #else
   void* pMemory = malloc(numBytes);
 #endif
