@@ -2,7 +2,6 @@
 
 #include "gl/lorGraphicsCore.h"
 #include "comms/lorSocket.h"
-#include "ui/lorUICore.h"
 #include "lorSettings.h"
 #include "lorAudio.h"
 #include "lorHTTP.h"
@@ -21,8 +20,6 @@ struct lorCore
 
   lorGraphicsCore *pGLCore;
   lorAudioEngine *pAudioCore;
-  lorUICore *pUI;
-
   lorSettings Settings;
   lorAppSettings *pAppSettings;
 };
@@ -42,7 +39,6 @@ void lorProcessMessageQueue(lorCore *pCore)
         pCore->pAppSettings->Height = pEvent->window.data2;
 
         lorGraphicsCore_Resize(pCore->pGLCore, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
-        lorUICore_ScreenResized(pCore->pUI, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
 
         if(pCore->pAppSettings->pResizedFunc)
           pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
@@ -67,31 +63,31 @@ void lorProcessMessageQueue(lorCore *pCore)
 
         break;
       case SDL_MOUSEMOTION:
-        lorUICore_PointMoved(pCore->pUI, 255, pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Mouse moved (%d, %d)", pEvent->motion.x, pEvent->motion.y);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->motion.x, pEvent->motion.y, lorCursorState_Moved);
         break;
       case SDL_MOUSEBUTTONDOWN:
-        lorUICore_PointDown(pCore->pUI, 255, pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Mouse button pressed (x=%d, y=%d, button=%d)", pEvent->motion.x, pEvent->motion.y, pEvent->button.button);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->button.x, pEvent->button.y, lorCursorState_Down);
         break;
       case SDL_MOUSEBUTTONUP:
-        lorUICore_PointUp(pCore->pUI, 255, pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Mouse button released (x=%d, y=%d, button=%d)", pEvent->motion.x, pEvent->motion.y, pEvent->button.button);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->button.x, pEvent->button.y, lorCursorState_Up);
         break;
       case SDL_MOUSEWHEEL:
         //lorLog("Mouse scrolled (x=%d, y=%d, button=%d)", pEvent->wheel.x, pEvent->wheel.y, pEvent->wheel.direction);
         break;
       case SDL_FINGERDOWN:
-        lorUICore_PointDown(pCore->pUI, (pEvent->tfinger.fingerId % 255), pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Finger (%" PRId64 ") touched: %5.5f, %5.5f, pressure: %5.5f", pEvent->tfinger.fingerId, pEvent->tfinger.dx, pEvent->tfinger.dy, pEvent->tfinger.pressure);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Down);
         break;
       case SDL_FINGERUP:
-        lorUICore_PointUp(pCore->pUI, (pEvent->tfinger.fingerId % 255), pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Finger (%" PRId64 ") removed: %5.5f, %5.5f, pressure: %5.5f", pEvent->tfinger.fingerId, pEvent->tfinger.dx, pEvent->tfinger.dy, pEvent->tfinger.pressure);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Up);
         break;
       case SDL_FINGERMOTION:
-        lorUICore_PointMoved(pCore->pUI, (pEvent->tfinger.fingerId % 255), pEvent->motion.x, pEvent->motion.y);
-        //lorLog("Finger (%" PRId64 ") moved: %5.5f, %5.5f, pressure: %5.5f", pEvent->tfinger.fingerId, pEvent->tfinger.dx, pEvent->tfinger.dy, pEvent->tfinger.pressure);
+        if (pCore->pAppSettings->pCursorEvent)
+          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Moved);
         break;
       case SDL_QUIT:
         lorLog("Quit requested, quitting.\n");
@@ -165,8 +161,6 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
   lorGraphicsCore_Init(&pCore->pGLCore, pCore->gWindow, &pCore->Settings);
   lorAudio_Init(&pCore->pAudioCore);
 
-  lorUICore_Init(&pCore->pUI, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
-
   pCore->isRunning = true;
 
   //UPDATE
@@ -199,7 +193,6 @@ bool lorExit(lorCore **ppCore)
   lorCore *pCore = *ppCore;
   *ppCore = nullptr;
 
-  lorUICore_Deinit(&pCore->pUI);
   lorAudio_Deinit(&pCore->pAudioCore);
   lorGraphicsCore_Destroy(&pCore->pGLCore);
   lorFree(pCore);
