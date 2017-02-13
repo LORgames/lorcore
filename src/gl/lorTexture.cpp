@@ -3,9 +3,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
-
 #include "lorArray.h"
-
 #include <stdio.h>
 
 typedef lorArray<lorTexture*, 64> lorTextureCache;
@@ -39,21 +37,26 @@ bool _TryLoadTexture(lorTexture *pTexture, const char *filename, lorGraphicsCore
   SDL_RWops *file = SDL_RWFromFile(filename, "r");
   if (!file)
   {
-    __android_log_print(ANDROID_LOG_ERROR, "LORgames", "Failed to load: %s", filename);
+    lorLog("Failed to load: %s", filename);
     return false;
   }
-  unsigned char *dataBuffer = lorAllocType(unsigned char, 1980 * 1080 * 4);
-  int n_blocks = SDL_RWread(file, dataBuffer, 4, 1980 * 1080);
+
+  int64_t filesize = SDL_RWsize(file);
+  if (filesize < 0)
+    filesize = 1024 * 1024 * 4; // 4MB
+
+  unsigned char *dataBuffer = lorAllocType(unsigned char, filesize);
+  int n_blocks = SDL_RWread(file, dataBuffer, 1, filesize);
   SDL_RWclose(file);
   if (n_blocks < 0)
-    __android_log_print(ANDROID_LOG_ERROR, "LORgames", "Failed to read: %s", filename);
+    lorLog("Failed to read: %s", filename);
   uint8_t *data = stbi_load_from_memory(dataBuffer, n_blocks * 4, &pTexture->w, &pTexture->h, &comp, 0);
   lorFree(dataBuffer);
 #else
   uint8_t *data = stbi_load(filename, &pTexture->w, &pTexture->h, &comp, 0);
 #endif
 
-uint32_t rmask, gmask, bmask, amask;
+  uint32_t rmask, gmask, bmask, amask;
 
   if (data == nullptr)
     goto epilogue;

@@ -40,8 +40,6 @@ void lorLineDrawer_Destroy(lorLineDrawer **ppLineDrawer)
 
 bool lorLineDrawer_AddLine(lorLineDrawer *pLineDrawer, const float &x0, const float &y0, const float &x1, const float &y1, const uint32_t &colour)
 {
-  //return false;
-
   if (pLineDrawer->usedLines == pLineDrawer->maxLines)
     return false;
 
