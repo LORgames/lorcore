@@ -33,7 +33,21 @@ enum LORWindowFlags
 struct lorGraphicsCore;
 struct lorCore;
 
+enum lorCursorState
+{
+  lorCursorState_Moved,
+  lorCursorState_Down,
+  lorCursorState_Up,
+  lorCursorState_Pressed,
+};
+
+enum
+{
+  lorMouseCursor = 255
+};
+
 typedef void (lorAppResized)(void *pAppData, int newWidth, int newHeight);
+typedef void (lorCursorEvent)(void *pAppdata, int cursorID, int x, int y, lorCursorState cursorState);
 
 struct lorAppSettings
 {
@@ -42,6 +56,7 @@ struct lorAppSettings
   float FrameMilliseconds;
 
   lorAppResized *pResizedFunc;
+  lorCursorEvent *pCursorEvent;
 
   const char *pName;
   void *pAppData;
