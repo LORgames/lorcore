@@ -9,28 +9,57 @@
 
 #define lorPI 3.14159f
 
-template <typename T>
-struct lorPointTemplate
+// Vectors
+template <typename T> struct lorVector2
 {
   T x;
   T y;
+
+  static lorVector2<T> Create(T x, T y) { return{ x, y }; };
+  static lorVector2<T> Zero() { return { T(0), T(0) }; };
+  static lorVector2<T> One() { return { T(1), T(1) }; };
 };
 
+// Comparisons
+template <typename T> bool operator ==(const lorVector2<T> &a, const lorVector2<T> &b) { return ((a.x == b.x) && (a.y == b.y)); };
+template <typename T> bool operator !=(const lorVector2<T> &a, const lorVector2<T> &b) { return !(a == b); };
+
+//Arithmetic
+template <typename T> lorVector2<T> operator +(const lorVector2<T> &a) { return { a.x, a.y }; };
+template <typename T> lorVector2<T> operator -(const lorVector2<T> &a) { return { -a.x, -a.y }; };
+template <typename T> lorVector2<T> operator +(const lorVector2<T> &a, const lorVector2<T> &b) { return{ a.x + b.x, a.y + b.y }; };
+template <typename T> lorVector2<T> operator -(const lorVector2<T> &a, const lorVector2<T> &b) { return{ a.x - b.x, a.y - b.y }; };
+template <typename T, typename U> lorVector2<T> operator *(const lorVector2<T> &a, const U &b) { return { T(a.x * b), T(a.y * b) }; };
+template <typename T, typename U> lorVector2<T> operator /(const lorVector2<T> &a, const U &b) { return{ T(a.x / b), T(a.y / b) }; };
+template <typename T> lorVector2<T> operator *(const lorVector2<T> &a, const lorVector2<T> &b) { return { a.x * b.x, a.y * b.y }; };
+template <typename T> lorVector2<T> operator /(const lorVector2<T> &a, const lorVector2<T> &b) { return { a.x / b.x, a.y / b.y }; };
+
+template <typename T> struct lorVector3 { T x; T y; T z;  };
+template <typename T> struct lorVector4 { T x; T y; T z; T w; };
+
+typedef lorVector2<int32_t> lorVec2i;
+typedef lorVector3<int32_t> lorVec3i;
+typedef lorVector4<int32_t> lorVec4i;
+
+typedef lorVector2<float> lorVec2;
+typedef lorVector3<float> lorVec3;
+typedef lorVector4<float> lorVec4;
+
+//Matrices
 template <typename T>
-struct lorCircleTemplate
+struct lorMatrix4
 {
-  T x;
-  T y;
-  T r;
+  union
+  {
+    T m[16];
+    lorVector4 a[4];
+  };
 };
 
-template <typename T>
-struct lorRectangleTemplate {
-  T x;
-  T y;
-  T w;
-  T h;
-};
+//Functions
+template<typename T> inline T lorMin(T val0, T val1) { return (val0 < val1 ? val0 : val1); }
+template<typename T> inline T lorMax(T val0, T val1) { return (val0 > val1 ? val0 : val1); }
+template<typename T> inline T lorClamp(T val, T min, T max) { return (val < min ? min : (val > max ? max : val)); }
 
 inline double lorSqrt(double val) { return sqrt(val); }
 inline float lorSqrt(float val) { return sqrtf(val); }
@@ -44,17 +73,6 @@ inline double lorCos(double val) { return cos(val); }
 
 inline float lorAbs(float val) { return fabsf(val); }
 inline double lorAbs(double val) { return fabs(val); }
-inline int lorAbs(int val) { int mask = (val >> (sizeof(int) * 8 - 1)); return (val + mask) ^ mask; } //8bits per byte
-
-template<typename T> inline T lorMin(T val0, T val1) { return (val0 < val1 ? val0 : val1); }
-template<typename T> inline T lorMax(T val0, T val1) { return (val0 > val1 ? val0 : val1); }
-template<typename T> inline T lorClamp(T val, T min, T max) { return (val < min ? min : (val > max ? max : val)); }
-
-typedef lorRectangleTemplate<float> lorRect;
-typedef lorPointTemplate<float> lorPoint;
-
-typedef lorPointTemplate<int32_t> lorCollisionPoint;
-typedef lorRectangleTemplate<int32_t> lorCollisionRect;
-typedef lorCircleTemplate<int32_t> lorCollisionCircle;
+template<typename T> inline T lorAbs(T val) { T mask = (val >> (sizeof(T) * 8 - 1)); return (val + mask) ^ mask; }
 
 #endif //LOR_MATH
