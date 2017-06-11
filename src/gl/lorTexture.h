@@ -2,6 +2,7 @@
 #define LOR_TEXTURE
 
 #include "lorMath.h"
+#include "lorShapes.h"
 #include "lorCore.h"
 
 enum lorTextureType
