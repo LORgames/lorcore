@@ -8,8 +8,6 @@ template <typename T> struct lorCircle { T x; T y; T r; };
 template <typename T> struct lorRectangle { T x; T y; T w; T h; };
 
 typedef lorRectangle<float> lorRect;
-typedef lorVector2<float> lorPoint;
-
 typedef lorRectangle<int32_t> lorRectanglei;
 typedef lorCircle<int32_t> lorCirclei;
 
