@@ -242,7 +242,7 @@ inline double lorSin(double val) { return sin(val); }
 inline float lorCos(float val) { return cosf(val); }
 inline double lorCos(double val) { return cos(val); }
 
-inline int lorPow(int val, int exp) { return (int)pow(val, exp); }
+inline int lorPow(int val, int exp) { return (int)powf((float)val, (float)exp); }
 inline float lorPow(float val, float exp) { return powf(val, exp); }
 inline double lorPow(double val, double exp) { return pow(val, exp); }
 
