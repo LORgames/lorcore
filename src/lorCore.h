@@ -1,8 +1,10 @@
 #ifndef LOR_CORE
 #define LOR_CORE
 
-#ifdef IOS
-#define nullptr NULL
+#include "lorPlatform.h"
+
+#if LORPLATFORM_IOS
+# define nullptr NULL
 #endif
 
 #include <stdio.h>
@@ -13,12 +15,14 @@
 #include "lorString.h"
 
 #ifndef ASSETDIR
-#define ASSETDIR "../../Assets/"
+# define ASSETDIR "../../Assets/"
 #endif
 
-#if ANDROID
-#include <android\log.h>
-#define PRId64 "lld"
+#if LORPLATFORM_ANDROID
+# include <android\log.h>
+# ifndef PRId64 // This can be defined on 64bit Android
+#   define PRId64 "lld"
+# endif
 #endif
 
 enum LORWindowFlags
@@ -75,11 +79,11 @@ struct lorAppSettings
 #else
 #include <signal.h>
 #define lorBreak() raise(SIGTRAP);
-#if ANDROID
+#if LORPLATFORM_ANDROID
 #define lorLog(fmt, ...) do { __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG", "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
-#else //!ANDROID
+#else //!LORPLATFORM_ANDROID
 #define lorLog(fmt, ...) do { printf("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
-#endif //ANDROID
+#endif //LORPLATFORM_ANDROID
 #endif
 
 #define lorAssert(check, fmt, ...) do { if(!(check)) { lorLog(fmt, ##__VA_ARGS__); lorBreak(); }} while(0)
