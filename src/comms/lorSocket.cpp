@@ -20,33 +20,7 @@
 #include <unistd.h> /* Needed for close() */
 #endif
 
-#if WINAPI_PARTITION_PHONE_APP
-int inet_pton(int af, const char *src, void *dst)
-{
-  struct sockaddr_storage ss;
-  int size = sizeof(ss);
-  char src_copy[INET6_ADDRSTRLEN + 1];
-
-  ZeroMemory(&ss, sizeof(ss));
-  /* stupid non-const API */
-  strncpy_s(src_copy, INET6_ADDRSTRLEN + 1, src, INET6_ADDRSTRLEN + 1);
-  src_copy[INET6_ADDRSTRLEN] = 0;
-
-  if (WSAStringToAddressA(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
-    switch (af) {
-    case AF_INET:
-      *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
-      return 1;
-    case AF_INET6:
-      *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
-      return 1;
-    }
-  }
-  return 0;
-}
-#endif
-
-#ifndef INVALID_SOCKET
+#ifndef INVALID_SOCKET //Some platforms don't have these defined
 typedef int SOCKET;
 #define INVALID_SOCKET  (SOCKET)(~0)
 #define SOCKET_ERROR            (-1)
@@ -185,7 +159,11 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
   if (pSocket == nullptr || pBytes == nullptr || bufferSize == 0 || pSocket->isServer)
     return 0;
 
-  if (!blockForever)
+  if (blockForever)
+  {
+    return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
+  }
+  else
   {
     struct timeval tv;
     fd_set readfds;
@@ -200,10 +178,6 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
 
     if (FD_ISSET(pSocket->sockID, &readfds))
       return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
-  }
-  else
-  {
-    return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
   }
 
   return 0;
