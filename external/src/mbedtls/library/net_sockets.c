@@ -45,11 +45,11 @@
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
 
-#ifdef _WIN32_WINNT
-#undef _WIN32_WINNT
-#endif
-/* Enables getaddrinfo() & Co */
-#define _WIN32_WINNT 0x0501
+//#ifdef _WIN32_WINNT
+//#undef _WIN32_WINNT
+//#endif
+///* Enables getaddrinfo() & Co */
+//#define _WIN32_WINNT 0x0501
 #include <ws2tcpip.h>
 
 #include <winsock2.h>

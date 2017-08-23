@@ -713,7 +713,7 @@ static int x509_crt_parse_der_core( mbedtls_x509_crt *crt, const unsigned char *
 
     memcpy( p, buf, crt->raw.len );
 
-    // Direct pointers to the new buffer 
+    // Direct pointers to the new buffer
     p += crt->raw.len - len;
     end = crt_end = p + len;
 
@@ -1129,7 +1129,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
     if( w_ret == 0 )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
-    hFind = FindFirstFileW( szDir, &file_data );
+    hFind = FindFirstFileExW( szDir, FindExInfoStandard, &file_data, FindExSearchNameMatch, NULL, 0);
     if( hFind == INVALID_HANDLE_VALUE )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
 
@@ -1142,7 +1142,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
             continue;
 
         w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
-                                     lstrlenW( file_data.cFileName ),
+                                     strlen( file_data.cFileName ),
                                      p, (int) len - 1,
                                      NULL, NULL );
         if( w_ret == 0 )
