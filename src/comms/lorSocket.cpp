@@ -89,13 +89,14 @@ static void lorSocketMBEDDebug(void * /*pUserData*/, int /*level*/, const char *
 
 bool lorSocket_Init(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSocketConnectionFlags flags)
 {
-  lorLog("Socket connection to %s:%d", pAddress, port);
+  if (ppSocket == nullptr)
+    return false;
+
+  lorLog("Socket init (%s:%d) flags=%d", pAddress, port, flags);
   bool openSuccess = false;
   int retVal;
 
-  *ppSocket = lorAllocType(lorSocket, 1);
-  lorSocket *pSocket = *ppSocket;
-
+  lorSocket *pSocket = lorAllocType(lorSocket, 1);
   addrinfo *pOutAddr = nullptr;
 
   bool isServer = (flags & lSCFIsServer) > 0;
@@ -188,7 +189,7 @@ bool lorSocket_Init(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSock
     if (retVal != 0)
       goto epilogue;
 
-    pSocket->sockID = socket(pOutAddr->ai_family, pOutAddr->ai_socktype, (int)pOutAddr->ai_addrlen);
+    pSocket->sockID = socket(pOutAddr->ai_family, pOutAddr->ai_socktype, pOutAddr->ai_protocol);
 
     if (!lorSocket_IsValidSocket(pSocket))
       goto epilogue;
@@ -221,6 +222,9 @@ epilogue:
 
   if (!openSuccess)
     lorSocket_Deinit(&pSocket);
+
+  if (pSocket != nullptr)
+    *ppSocket = pSocket;
 
   lorLog("\t...Connection %s!", openSuccess ? "Success" : "Failed");
   return openSuccess;
