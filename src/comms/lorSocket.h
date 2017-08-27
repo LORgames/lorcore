@@ -11,13 +11,13 @@ bool lorSocket_DeinitSystem();
 enum lorSocketConnectionFlags
 {
   lSCFNone = 0,
-  lSCFIsServer = 1,
-  lSCFUseTLS = 2
+  lSCFIsServer = 1 << 0,
+  lSCFUseTLS = 1 << 1
 };
 inline lorSocketConnectionFlags operator |(lorSocketConnectionFlags a, lorSocketConnectionFlags b) { return (lorSocketConnectionFlags)(((int)a) | ((int)b)); }
 
-bool lorSocket_OpenSocket(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone);
-bool lorSocket_CloseSocket(lorSocket **ppSocket);
+bool lorSocket_Init(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone);
+bool lorSocket_Deinit(lorSocket **ppSocket);
 bool lorSocket_IsValidSocket(lorSocket *pSocket);
 
 bool lorSocket_SendData(lorSocket *pSocket, const uint8_t *pBytes, uint16_t totalBytes);
