@@ -6,6 +6,9 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/net_sockets.h"
+#include "mbedtls/error.h"
 
 #ifdef _MSC_VER
 #include <winsock2.h>
@@ -311,13 +314,27 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
 
   *ppClientSocket = nullptr;
 
-  SOCKET clientSocket = accept(pServerSocket->sockID, nullptr, nullptr);
+  struct timeval tv;
+  fd_set readfds;
 
-  if (clientSocket != INVALID_SOCKET)
+  tv.tv_sec = 0;
+  tv.tv_usec = 500000;
+
+  FD_ZERO(&readfds);
+  FD_SET(pServerSocket->sockID, &readfds);
+
+  select(0, &readfds, nullptr, nullptr, &tv);
+
+  if (FD_ISSET(pServerSocket->sockID, &readfds))
   {
-    (*ppClientSocket) = lorAllocType(lorSocket, 1);
-    (*ppClientSocket)->sockID = clientSocket;
-    return true;
+    SOCKET clientSocket = accept(pServerSocket->sockID, nullptr, nullptr);
+
+    if (clientSocket != INVALID_SOCKET)
+    {
+      (*ppClientSocket) = lorAllocType(lorSocket, 1);
+      (*ppClientSocket)->sockID = clientSocket;
+      return true;
+    }
   }
 
   return false;
