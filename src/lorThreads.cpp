@@ -113,22 +113,25 @@ void lorConditionVariable_NotifyAll(lorConditionVariable *pConditionVariable)
     (*pConditionVariable).condition.notify_all();
 }
 
-void lorConditionVariable_Wait(lorConditionVariable *pConditionVariable, lorMutex *pMutex)
+bool lorConditionVariable_Wait(lorConditionVariable *pConditionVariable, lorMutex *pMutex, int ms /*= lorThread_InfiniteTimeout*/)
 {
   std::unique_lock<std::mutex> lock(pMutex->mutex);
 
   if (pConditionVariable != nullptr)
+    return false;
+
+  if (ms == lorThread_InfiniteTimeout)
+  {
     (*pConditionVariable).condition.wait(lock);
-}
+    return true;
+  }
+  else
+  {
+    // wow, best standard
+    auto now = std::chrono::system_clock::now();
 
-bool lorConditionVariable_TimedWait(lorConditionVariable *pConditionVariable, lorMutex *pMutex, int ms /*= lorThread_InfiniteTimeout*/)
-{
-  std::unique_lock<std::mutex> lock(pMutex->mutex);
-
-  // wow, best standard
-  auto now = std::chrono::system_clock::now();
-
-  return (pConditionVariable != nullptr) && (*pConditionVariable).condition.wait_until(lock, now + std::chrono::milliseconds(ms)) == std::cv_status::no_timeout;
+    return (*pConditionVariable).condition.wait_until(lock, now + std::chrono::milliseconds(ms)) == std::cv_status::no_timeout;
+  }
 }
 
 struct lorSemaphore
@@ -172,35 +175,36 @@ void lorSemaphore_Notify(lorSemaphore *pSemaphore, int count /*= 1*/)
   }
 }
 
-void lorSemaphore_Wait(lorSemaphore *pSemaphore)
-{
-  if (pSemaphore == nullptr)
-    return;
-
-  std::unique_lock<std::mutex> lock(pSemaphore->pMutex->mutex);
-  while (!pSemaphore->count) // handle spurious wake-ups
-    pSemaphore->pCondition->condition.wait(lock);
-  --(pSemaphore->count);
-}
-
-bool lorSemaphore_TimedWait(lorSemaphore *pSemaphore, int ms /*= lorThread_InfiniteTimeout*/)
+bool lorSemaphore_Wait(lorSemaphore *pSemaphore, int ms /*= lorThread_InfiniteTimeout*/)
 {
   if (pSemaphore == nullptr)
     return false;
 
   std::unique_lock<std::mutex> lock(pSemaphore->pMutex->mutex);
-  auto now = std::chrono::system_clock::now();
-  bool retVal = pSemaphore->pCondition->condition.wait_until(lock, now + std::chrono::milliseconds(ms)) == std::cv_status::no_timeout;
-
-  if (retVal)
+  if (ms == lorThread_InfiniteTimeout)
   {
-    if (pSemaphore->count > 0)
-      --(pSemaphore->count);
-    else
-      retVal = false;
-  }
+    while (pSemaphore->count == 0) // handle spurious wake-ups
+      pSemaphore->pCondition->condition.wait(lock);
 
-  return retVal;
+    --(pSemaphore->count);
+
+    return true;
+  }
+  else
+  {
+    auto now = std::chrono::system_clock::now();
+    bool retVal = pSemaphore->pCondition->condition.wait_until(lock, now + std::chrono::milliseconds(ms)) == std::cv_status::no_timeout;
+
+    if (retVal)
+    {
+      if (pSemaphore->count > 0)
+        --(pSemaphore->count);
+      else
+        retVal = false;
+    }
+
+    return retVal;
+  }
 }
 
 // Basic C++11 implementation
