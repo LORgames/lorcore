@@ -32,13 +32,20 @@ inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)
   return pMemory;
 }
 
-inline void lorFree(void *pPtr)
+#define lorFree(pPtr) _lorFree((void*&)pPtr);
+
+inline void _lorFree(void *&pPtr)
 {
 #if TRACK_MEMORY
   free((char*)pPtr - MemoryPadding);
 #else
   free(pPtr);
 #endif
+
+  // This is not thread safe and can lead to double frees.
+  // Ideally, this would be done first with an interlocked
+  // compare exchange.
+  pPtr = nullptr;
 }
 
 #endif //LOR_CORE
