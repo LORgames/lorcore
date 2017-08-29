@@ -28,17 +28,15 @@ void lorConditionVariable_Create(lorConditionVariable **ppConditionVariable);
 void lorConditionVariable_Destroy(lorConditionVariable **ppConditionVariable);
 void lorConditionVariable_NotifyOne(lorConditionVariable *pConditionVariable);
 void lorConditionVariable_NotifyAll(lorConditionVariable *pConditionVariable);
-void lorConditionVariable_Wait(lorConditionVariable *pConditionVariable, lorMutex *pMutex);
 // Returns true false if timedout. Note: returns true if awakened spuriously.
-bool lorConditionVariable_TimedWait(lorConditionVariable *pConditionVariable, lorMutex *pMutex, int ms = lorThread_InfiniteTimeout);
+bool lorConditionVariable_Wait(lorConditionVariable *pConditionVariable, lorMutex *pMutex, int ms = lorThread_InfiniteTimeout);
 
 struct lorSemaphore;
 
 void lorSemaphore_Create(lorSemaphore **ppSemaphore, int initialValue = 0);
 void lorSemaphore_Destroy(lorSemaphore **ppSemaphore);
 void lorSemaphore_Notify(lorSemaphore *pSemaphore, int count = 1);
-void lorSemaphore_Wait(lorSemaphore *pSemaphore);
-bool lorSemaphore_TimedWait(lorSemaphore *pSemaphore, int ms = lorThread_InfiniteTimeout);
+bool lorSemaphore_Wait(lorSemaphore *pSemaphore, int ms = lorThread_InfiniteTimeout);
 
 struct lorAtomicInt32;
 
