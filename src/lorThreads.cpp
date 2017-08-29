@@ -294,7 +294,7 @@ int32_t lorAtomicInt32_FetchXor(lorAtomicInt32 *pAtomic, int32_t value)
 
 void lorSleep(int ms)
 {
-#if LORPLATFORM_WINDOWS
+#if LORPLATFORM_WINDOWS || LORPLATFORM_WINRT || LORPLATFORM_WINPHONE
   Sleep(ms);
 #else
   timespec sleepTime;

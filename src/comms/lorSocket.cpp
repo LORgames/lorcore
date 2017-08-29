@@ -87,7 +87,7 @@ static void lorSocketMBEDDebug(void * /*pUserData*/, int /*level*/, const char *
   lorLog("%s:%04d: %s", file, line, str);
 }
 
-bool lorSocket_Init(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSocketConnectionFlags flags)
+bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags)
 {
   if (ppSocket == nullptr)
     return false;
@@ -297,7 +297,7 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
     fd_set readfds;
 
     tv.tv_sec = 0;
-    tv.tv_usec = 500000;
+    tv.tv_usec = 5000;
 
     FD_ZERO(&readfds);
     FD_SET(pSocket->sockID, &readfds);
@@ -322,7 +322,7 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   fd_set readfds;
 
   tv.tv_sec = 0;
-  tv.tv_usec = 500000;
+  tv.tv_usec = 5000;
 
   FD_ZERO(&readfds);
   FD_SET(pServerSocket->sockID, &readfds);

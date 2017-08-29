@@ -16,7 +16,7 @@ enum lorSocketConnectionFlags
 };
 inline lorSocketConnectionFlags operator |(lorSocketConnectionFlags a, lorSocketConnectionFlags b) { return (lorSocketConnectionFlags)(((int)a) | ((int)b)); }
 
-bool lorSocket_Init(lorSocket **ppSocket, char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone);
+bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone);
 bool lorSocket_Deinit(lorSocket **ppSocket);
 bool lorSocket_IsValidSocket(lorSocket *pSocket);
 

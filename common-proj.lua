@@ -3,7 +3,7 @@ filter { }
 local proj = project()
 targetname(string.gsub(proj.name, projectsuffix, ""))
 flags { "C++11", "NoPCH", "NoIncrementalLink", "FatalWarnings" }
-exceptionhandling "Off"
+--exceptionhandling "On"
 warnings "Extra"
 editandcontinue "Off"
 
