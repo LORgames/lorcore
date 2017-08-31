@@ -297,7 +297,7 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
     fd_set readfds;
 
     tv.tv_sec = 0;
-    tv.tv_usec = 5000;
+    tv.tv_usec = 1; //0 was wait forever?
 
     FD_ZERO(&readfds);
     FD_SET(pSocket->sockID, &readfds);
@@ -322,7 +322,7 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   fd_set readfds;
 
   tv.tv_sec = 0;
-  tv.tv_usec = 5000;
+  tv.tv_usec = 1; //0 is wait forever?
 
   FD_ZERO(&readfds);
   FD_SET(pServerSocket->sockID, &readfds);
