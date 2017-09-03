@@ -54,4 +54,10 @@ bool lorShapes_CircleVsRectangle(const lorCircle<T> &circle, const lorRectangle<
   return false;
 }
 
+template <typename T, typename U>
+bool lorShapes_PointVsRectangle(const lorVector2<T> &point, const lorRectangle<U> &rectangle)
+{
+  return (point.x >= rectangle.x && point.x <= rectangle.x + rectangle.w && point.y >= rectangle.y && point.y <= rectangle.y + rectangle.h);
+}
+
 #endif
