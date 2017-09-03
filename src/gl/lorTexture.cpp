@@ -19,6 +19,7 @@ void lorTexture_DestroyTextureCache()
   while (textureCache.length > 0)
   {
     lorTexture_Free(textureCache[0]);
+    textureCache.PopFront();
   }
 
   textureCache.Deinit();
