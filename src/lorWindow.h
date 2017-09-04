@@ -3,17 +3,17 @@
 
 #include "lorPlatform.h"
 
-enum LORWindowFlags
+enum lorWindowFlags
 {
-  LOR_WF_NONE = 0,
-  LOR_WF_FULLSCREEN = 1 << 0,
-  LOR_WF_USE_DEVICE_RES = 1 << 1,
-  LOR_WF_NO_RESIZE = 1 << 2,
+  lorWF_NONE = 0,
+  lorWF_FULLSCREEN = 1 << 0,
+  lorWF_USE_DEVICE_RES = 1 << 1,
+  lorWF_NO_RESIZE = 1 << 2,
 };
 
 //These structs will be passed around a lot
 struct lorGraphicsCore;
-struct lorCore;
+struct lorWindow;
 
 enum lorCursorState
 {
@@ -44,9 +44,8 @@ struct lorAppSettings
   void *pAppData;
 };
 
-bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags); //Startup the engine
-bool lorUpdate(lorCore *pCore, lorGraphicsCore **ppGL); // Update the engine, returns true if should keep running
-bool lorExit(lorCore **ppCore); // Cleanup the engine
-bool lorSuspend(lorCore *pCore); //App is trying to minimize or go into low power mode
+bool lorWindow_Init(lorWindow **ppCore, lorAppSettings *pAppSettings, uint32_t flags); //Startup the engine
+bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL); // Update the engine, returns true if should keep running
+bool lorWindow_Exit(lorWindow **ppCore); // Cleanup the engine
 
 #endif //lorApp_h__

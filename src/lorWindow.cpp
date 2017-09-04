@@ -8,7 +8,7 @@
 
 #include "SDL2/SDL.h"
 
-struct lorCore
+struct lorWindow
 {
   SDL_Window* gWindow = NULL;
   SDL_Event event;  // Our event handle
@@ -24,7 +24,7 @@ struct lorCore
   lorAppSettings *pAppSettings;
 };
 
-void lorProcessMessageQueue(lorCore *pCore)
+void lorWindow_ProcessMessageQueue(lorWindow *pCore)
 {
   SDL_Event *pEvent = &pCore->event;
 
@@ -99,7 +99,7 @@ void lorProcessMessageQueue(lorCore *pCore)
 }
 
 //App has just been launched
-bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
+bool lorWindow_Init(lorWindow **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
 {
   lorLog("Starting client...");
 
@@ -114,13 +114,13 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
   uint32_t windowFlags = SDL_WINDOW_SHOWN;
   SDL_DisplayMode mode;
 
-  if (flags & LOR_WF_FULLSCREEN)
+  if (flags & lorWF_FULLSCREEN)
     windowFlags |= SDL_WINDOW_FULLSCREEN;
 
-  if ((flags & LOR_WF_NO_RESIZE) == 0)  //SDL has resizable but not, 'not resizable'
+  if ((flags & lorWF_NO_RESIZE) == 0)  //SDL has resizable but not, 'not resizable'
     windowFlags |= SDL_WINDOW_RESIZABLE;
 
-  if ((flags & LOR_WF_USE_DEVICE_RES) == LOR_WF_USE_DEVICE_RES)
+  if ((flags & lorWF_USE_DEVICE_RES) == lorWF_USE_DEVICE_RES)
   {
     if (SDL_GetCurrentDisplayMode(0, &mode) != 0)
       return false;
@@ -145,7 +145,7 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
   }
 
   //Create the core
-  lorCore *pCore = lorAllocType(lorCore, 1);
+  lorWindow *pCore = lorAllocType(lorWindow, 1);
   *ppCore = pCore;
   pCore->gWindow = pWindow;
 
@@ -168,9 +168,9 @@ bool lorInit(lorCore **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
 }
 
 // Update the engine, returns true if should keep running
-bool lorUpdate(lorCore *pCore, lorGraphicsCore **ppGL)
+bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL)
 {
-  lorProcessMessageQueue(pCore);
+  lorWindow_ProcessMessageQueue(pCore);
 
   //Sort out sleep time
   pCore->now = SDL_GetTicks();
@@ -185,12 +185,12 @@ bool lorUpdate(lorCore *pCore, lorGraphicsCore **ppGL)
 }
 
 //App is trying to exit
-bool lorExit(lorCore **ppCore)
+bool lorWindow_Exit(lorWindow **ppCore)
 {
   if (ppCore == nullptr || *ppCore == nullptr)
     return false;
 
-  lorCore *pCore = *ppCore;
+  lorWindow *pCore = *ppCore;
   *ppCore = nullptr;
 
   lorAudio_Deinit(&pCore->pAudioCore);
@@ -203,10 +203,4 @@ bool lorExit(lorCore **ppCore)
     return false;
 
   return true;
-}
-
-//App is trying to minimize or go into low power mode
-bool lorSuspend(lorCore * /*pCore*/)
-{
-  return false; //Did not successfully suspend
 }
