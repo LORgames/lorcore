@@ -15,37 +15,38 @@ enum lorWindowFlags
 struct lorGraphicsCore;
 struct lorWindow;
 
-enum lorCursorState
-{
-  lorCursorState_Moved,
-  lorCursorState_Down,
-  lorCursorState_Up,
-  lorCursorState_Pressed,
-};
-
 enum
 {
   lorMouseCursor = 255
 };
 
-typedef void (lorAppResized)(void *pAppData, int newWidth, int newHeight);
-typedef void (lorCursorEvent)(void *pAppdata, int cursorID, int x, int y, lorCursorState cursorState);
+struct lorWindowEventData_Cursor
+{
+  int cursorID;
+  lorVec2i screenPosition;
+};
 
-struct lorAppSettings
+typedef void (lorAppResized)(void *pAppData, lorVec2i newSize);
+typedef void (lorCursorEvent)(void *pAppdata, const lorWindowEventData_Cursor &cursorData);
+
+struct lorWindowSettings
 {
   int Width;
   int Height;
   float FrameMilliseconds;
 
   lorAppResized *pResizedFunc;
-  lorCursorEvent *pCursorEvent;
+
+  lorCursorEvent *pCursorMoved;
+  lorCursorEvent *pCursorDown;
+  lorCursorEvent *pCursorUp;
 
   const char *pName;
   void *pAppData;
 };
 
-bool lorWindow_Init(lorWindow **ppCore, lorAppSettings *pAppSettings, uint32_t flags); //Startup the engine
+bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_t flags); //Startup the engine
 bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL); // Update the engine, returns true if should keep running
 bool lorWindow_Exit(lorWindow **ppCore); // Cleanup the engine
 
-#endif //lorApp_h__
+#endif //lorWindow_h__
