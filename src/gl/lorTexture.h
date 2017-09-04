@@ -3,7 +3,7 @@
 
 #include "lorMath.h"
 #include "lorShapes.h"
-#include "lorCore.h"
+#include "gl/lorGraphicsCore.h"
 
 enum lorTextureType
 {

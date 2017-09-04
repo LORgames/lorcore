@@ -1,5 +1,5 @@
 #include "lorLineDrawer.h"
-#include "lorCore.h"
+#include "lorWindow.h"
 #include "lorGL_Internal.h"
 
 struct lorLineVertex

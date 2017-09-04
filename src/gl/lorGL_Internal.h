@@ -4,7 +4,7 @@
 //THIS HEADER TO ONLY BE INCLUDED FROM WITHIN THE /gl/ DIRECTORY!
 
 #include "lorMath.h"
-#include "lorCore.h"
+#include "lorWindow.h"
 #include "lorSettings.h"
 #include "lorLineDrawer.h"
 #include "SDL2/SDL.h"

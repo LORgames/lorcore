@@ -1,7 +1,7 @@
 #ifndef LOR_ARRAY
 #define LOR_ARRAY
 
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 template <typename T, uint32_t elementsPerBlock>
 struct lorArray

@@ -1,7 +1,7 @@
 #ifndef lorThreads__h_
 #define lorThreads__h_
 
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 enum
 {

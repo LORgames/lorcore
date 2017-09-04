@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <math.h> // This provides sinf and is required for Linux (how does everything else get this?)
 
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 #define lorPI 3.14159f
 
