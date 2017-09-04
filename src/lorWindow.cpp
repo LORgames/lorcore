@@ -21,7 +21,7 @@ struct lorWindow
   lorGraphicsCore *pGLCore;
   lorAudioEngine *pAudioCore;
   lorSettings Settings;
-  lorAppSettings *pAppSettings;
+  lorWindowSettings *pAppSettings;
 };
 
 void lorWindow_ProcessMessageQueue(lorWindow *pCore)
@@ -41,7 +41,7 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
         lorGraphicsCore_Resize(pCore->pGLCore, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
 
         if(pCore->pAppSettings->pResizedFunc)
-          pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, pCore->pAppSettings->Width, pCore->pAppSettings->Height);
+          pCore->pAppSettings->pResizedFunc(pCore->pAppSettings->pAppData, lorVec2i{ pCore->pAppSettings->Width, pCore->pAppSettings->Height });
 
         lorLog("Window %d resized to %dx%d\n", pEvent->window.windowID, pEvent->window.data1, pEvent->window.data2);
         break;
@@ -63,31 +63,31 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
 
         break;
       case SDL_MOUSEMOTION:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->motion.x, pEvent->motion.y, lorCursorState_Moved);
+        if (pCore->pAppSettings->pCursorMoved)
+          pCore->pAppSettings->pCursorMoved(pCore->pAppSettings->pAppData, { lorMouseCursor, { pEvent->motion.x, pEvent->motion.y }});
         break;
       case SDL_MOUSEBUTTONDOWN:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->button.x, pEvent->button.y, lorCursorState_Down);
+        if (pCore->pAppSettings->pCursorDown)
+          pCore->pAppSettings->pCursorDown(pCore->pAppSettings->pAppData, { lorMouseCursor, { pEvent->button.x, pEvent->button.y }});
         break;
       case SDL_MOUSEBUTTONUP:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, lorMouseCursor, pEvent->button.x, pEvent->button.y, lorCursorState_Up);
+        if (pCore->pAppSettings->pCursorUp)
+          pCore->pAppSettings->pCursorUp(pCore->pAppSettings->pAppData, { lorMouseCursor, { pEvent->button.x, pEvent->button.y }});
         break;
       case SDL_MOUSEWHEEL:
         //lorLog("Mouse scrolled (x=%d, y=%d, button=%d)", pEvent->wheel.x, pEvent->wheel.y, pEvent->wheel.direction);
         break;
       case SDL_FINGERDOWN:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Down);
+        if (pCore->pAppSettings->pCursorDown)
+          pCore->pAppSettings->pCursorDown(pCore->pAppSettings->pAppData, { int(pEvent->tfinger.fingerId), { int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height) }});
         break;
       case SDL_FINGERUP:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Up);
+        if (pCore->pAppSettings->pCursorUp)
+          pCore->pAppSettings->pCursorUp(pCore->pAppSettings->pAppData, { int(pEvent->tfinger.fingerId), { int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height) }});
         break;
       case SDL_FINGERMOTION:
-        if (pCore->pAppSettings->pCursorEvent)
-          pCore->pAppSettings->pCursorEvent(pCore->pAppSettings->pAppData, int(pEvent->tfinger.fingerId), int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height), lorCursorState_Moved);
+        if (pCore->pAppSettings->pCursorMoved)
+          pCore->pAppSettings->pCursorMoved(pCore->pAppSettings->pAppData, { int(pEvent->tfinger.fingerId), { int(pEvent->tfinger.x * pCore->pAppSettings->Width), int(pEvent->tfinger.y * pCore->pAppSettings->Height) }});
         break;
       case SDL_QUIT:
         lorLog("Quit requested, quitting.\n");
@@ -99,7 +99,7 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
 }
 
 //App has just been launched
-bool lorWindow_Init(lorWindow **ppCore, lorAppSettings *pAppSettings, uint32_t flags)
+bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_t flags)
 {
   lorLog("Starting client...");
 
