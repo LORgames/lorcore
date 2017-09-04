@@ -1,7 +1,7 @@
 #ifndef LOR_GRAPHICSCORE
 #define LOR_GRAPHICSCORE
 
-#include "lorCore.h"
+#include "lorWindow.h"
 
 struct SDL_Window;
 

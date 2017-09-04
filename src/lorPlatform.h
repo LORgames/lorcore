@@ -71,4 +71,47 @@
 //# define LORPLATFORM_WINPHONE 0
 //#endif
 
+#if LORPLATFORM_IOS
+# define nullptr NULL
+#endif
+
+#if LORPLATFORM_ANDROID
+# include <android\log.h>
+# ifndef PRId64 // This can be defined on 64bit Android
+#   define PRId64 "lld"
+# endif
+#endif
+
+#include <stdio.h>
+#include <cstring>
+#include "lorMath.h"
+
+#include "lorMemory.h"
+#include "lorString.h"
+
+#if defined(_MSC_VER) && defined(lorLogToFile)
+#include "lorFile.h"
+#define lorBreak() __debugbreak()
+#define lorLog(fmt, ...) do { FILE *pFile = lorFile_OpenUserFile("game.log", "a"); fprintf_s(pFile, "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); fclose(pFile); } while(0)
+#elif defined(lorLogToFile)
+#error Unsupported Platform for lorLogToFile!
+#elif defined(_MSC_VER)
+#define lorBreak() __debugbreak()
+#define lorLog(fmt, ...) do { printf_s("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
+#else
+#include <signal.h>
+#define lorBreak() raise(SIGTRAP);
+#if LORPLATFORM_ANDROID
+#define lorLog(fmt, ...) do { __android_log_print(ANDROID_LOG_DEBUG, "LOG_TAG", "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
+#else //!LORPLATFORM_ANDROID
+#define lorLog(fmt, ...) do { printf("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while(0)
+#endif //LORPLATFORM_ANDROID
+#endif
+
+#define lorAssert(check, fmt, ...) do { if(!(check)) { lorLog(fmt, ##__VA_ARGS__); lorBreak(); }} while(0)
+
+#ifndef ASSETDIR
+# define ASSETDIR "../../Assets/"
+#endif
+
 #endif // lorPlatform__h_

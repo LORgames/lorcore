@@ -1,5 +1,5 @@
 #include "lorHTTP.h"
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 #include <stdio.h>
 //#include "curl/curl.h"

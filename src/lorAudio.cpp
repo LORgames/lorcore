@@ -1,5 +1,5 @@
 #include "lorAudio.h"
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 struct lorAudioEngine
 {

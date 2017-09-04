@@ -1,4 +1,4 @@
-#include "lorCore.h"
+#include "lorWindow.h"
 
 #include "gl/lorGraphicsCore.h"
 #include "comms/lorSocket.h"

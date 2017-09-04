@@ -1,5 +1,5 @@
 #include "lorFile.h"
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 #include "SDL2/SDL_filesystem.h"
 

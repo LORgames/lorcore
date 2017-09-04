@@ -1,5 +1,5 @@
 #include "lorSocket.h"
-#include "lorCore.h"
+#include "lorPlatform.h"
 
 #include "mbedtls/net.h"
 #include "mbedtls/ssl.h"
