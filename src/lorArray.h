@@ -21,6 +21,9 @@ struct lorArray
 
   void RemoveSwapLast(size_t index);
 
+  void CopyFrom(const T *pArray, size_t startIndex, size_t copySize);
+  void CopyTo(size_t startIndex, size_t copySize, T *pArray);
+
   template<typename _T, uint32_t _elementsPerBlock>
   struct block
   {
@@ -248,6 +251,102 @@ inline void lorArray<T, elementsPerBlock>::RemoveSwapLast(size_t index)
     ppBlocks[index / elementsPerBlock]->data[index % elementsPerBlock] = operator[](length - 1);
 
   --length;
+}
+
+template <typename T, uint32_t elementsPerBlock>
+inline void lorArray<T, elementsPerBlock>::CopyFrom(const T *pArray, size_t startIndex, size_t copySize)
+{
+  lorAssert(pArray != nullptr, "Array was nullptr");
+
+  // Add new blocks
+  size_t spaceAtEnd = (blockCount * elementsPerBlock) - length + offset;
+  if (copySize > spaceAtEnd)
+  {
+    uint32_t numElementsRequired = (uint32_t)(copySize - spaceAtEnd);
+    uint32_t numBlocksRequired = (numElementsRequired / elementsPerBlock) + ((numElementsRequired % elementsPerBlock) == 0 ? 0 : 1);
+    AddBlocks(numBlocksRequired);
+  }
+
+  // Handle end of existing block
+  size_t blockLengthUsed = (length + offset) % elementsPerBlock;
+  size_t blockLengthFree = elementsPerBlock - blockLengthUsed;
+  if (blockLengthUsed != 0)
+  {
+    size_t copyAmount = lorMin(blockLengthFree, copySize);
+    block_t *pBlock = ppBlocks[(length + offset) / elementsPerBlock];
+    block_t *pBlockStart = &(pBlock[blockLengthUsed]);
+    (void)pBlockStart;
+    memcpy(&(ppBlocks[(length + offset) / elementsPerBlock]->data[blockLengthUsed]), &(pArray[startIndex]), sizeof(T) * copyAmount);
+    length += (uint32_t)copyAmount;
+    startIndex += copyAmount;
+    copySize -= copyAmount;
+  }
+
+  // Handle full block copies
+  while (copySize >= elementsPerBlock)
+  {
+    memcpy((ppBlocks[(length + offset) / elementsPerBlock]->data), &(pArray[startIndex]), sizeof(T) * elementsPerBlock);
+    length += elementsPerBlock;
+    startIndex += elementsPerBlock;
+    copySize -= elementsPerBlock;
+  }
+
+  // Handle last partial block copy
+  if (copySize > 0)
+  {
+    memcpy((ppBlocks[(length + offset) / elementsPerBlock]->data), &(pArray[startIndex]), sizeof(T) * copySize);
+    length += (uint32_t)copySize;
+    startIndex += copySize;
+    copySize -= copySize;
+  }
+
+  lorAssert(copySize == 0, "Not all elements copied");
+}
+
+template <typename T, uint32_t elementsPerBlock>
+inline void lorArray<T, elementsPerBlock>::CopyTo(size_t startIndex, size_t copySize, T *pArray)
+{
+  lorAssert(pArray != nullptr, "Array was nullptr");
+  lorAssert(startIndex < length, "Index was out of bounds");
+  lorAssert((copySize + startIndex) <= length, "Copy size goes out of bounds");
+
+  size_t arrayOffset = 0;
+  startIndex += offset;
+
+  size_t blockIndex = startIndex / elementsPerBlock;
+  size_t blockOffset = startIndex % elementsPerBlock;
+
+  // Handle end of first block
+  if (blockOffset != 0)
+  {
+    size_t copyAmount = lorMin(copySize, elementsPerBlock - blockOffset);
+    memcpy(&(pArray[arrayOffset]), &(ppBlocks[blockIndex]->data[blockOffset]), sizeof(T) * copyAmount);
+    arrayOffset += copyAmount;
+    startIndex += copyAmount;
+    copySize -= copyAmount;
+  }
+
+  // Handle full block copies
+  while (copySize >= elementsPerBlock)
+  {
+    blockIndex = startIndex / elementsPerBlock;
+    memcpy(&(pArray[arrayOffset]), &(ppBlocks[blockIndex]->data[0]), sizeof(T) * elementsPerBlock);
+    arrayOffset += elementsPerBlock;
+    startIndex += elementsPerBlock;
+    copySize -= elementsPerBlock;
+  }
+
+  // Handle last block
+  if (copySize > 0)
+  {
+    blockIndex = startIndex / elementsPerBlock;
+    memcpy(&(pArray[arrayOffset]), &(ppBlocks[blockIndex]->data[0]), sizeof(T) * copySize);
+    arrayOffset += copySize;
+    startIndex += copySize;
+    copySize -= copySize;
+  }
+
+  lorAssert(copySize == 0, "Not all elements copied");
 }
 
 #endif //LOR_CHUNKED_ARRAY
