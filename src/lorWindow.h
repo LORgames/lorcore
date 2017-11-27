@@ -13,6 +13,7 @@ enum lorWindowFlags
 
 //These structs will be passed around a lot
 struct lorGraphicsCore;
+struct lorAudioEngine;
 struct lorWindow;
 
 enum
@@ -43,10 +44,14 @@ struct lorWindowSettings
 
   const char *pName;
   void *pAppData;
+
+  //Out Values
+  lorGraphicsCore *pGL;
+  lorAudioEngine *pAudio;
 };
 
 bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_t flags); //Startup the engine
-bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL); // Update the engine, returns true if should keep running
+bool lorWindow_Update(lorWindow *pCore); // Update the engine, returns true if should keep running
 bool lorWindow_Exit(lorWindow **ppCore); // Cleanup the engine
 
 #endif //lorWindow_h__

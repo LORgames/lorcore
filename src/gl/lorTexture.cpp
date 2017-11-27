@@ -205,6 +205,17 @@ void lorTexture_Free(lorTexture *pTexture)
   }
 }
 
+
+void lorTexture_IncrCacheInstance(lorTexture *pTexture)
+{
+  ++(pTexture->totalInstances);
+}
+
+void lorTexture_DecrCacheInstance(lorTexture *pTexture)
+{
+  --(pTexture->totalInstances);
+}
+
 void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/)
 {
   lorTexure_BlitToScreen(pTexture, pGL, pDestRect->x, pDestRect->y, pDestRect->w, pDestRect->h, pSrcRect, flipMode);
