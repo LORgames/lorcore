@@ -28,6 +28,9 @@ void lorTexture_DestroyTextureCache();
 lorTexture* lorTexture_Load(const char *filename, lorTextureType type, lorGraphicsCore *pGL);
 void lorTexture_Free(lorTexture *pTexture);
 
+void lorTexture_IncrCacheInstance(lorTexture *pTexture);
+void lorTexture_DecrCacheInstance(lorTexture *pTexture);
+
 void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);
 void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);
 void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, float w, float h, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);

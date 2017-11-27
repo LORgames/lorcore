@@ -161,6 +161,10 @@ bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_
   lorGraphicsCore_Init(&pCore->pGLCore, pCore->gWindow, &pCore->Settings);
   lorAudio_Init(&pCore->pAudioCore);
 
+  //Copy out
+  pAppSettings->pGL = pCore->pGLCore;
+  pAppSettings->pAudio = pCore->pAudioCore;
+
   pCore->isRunning = true;
 
   //UPDATE
@@ -168,7 +172,7 @@ bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_
 }
 
 // Update the engine, returns true if should keep running
-bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL)
+bool lorWindow_Update(lorWindow *pCore)
 {
   lorWindow_ProcessMessageQueue(pCore);
 
@@ -177,9 +181,6 @@ bool lorWindow_Update(lorWindow *pCore, lorGraphicsCore **ppGL)
   if (pCore->now < pCore->nextTime)
     SDL_Delay((uint32_t)(pCore->nextTime - pCore->now));
   pCore->nextTime += pCore->pAppSettings->FrameMilliseconds;
-
-  if (ppGL)
-    *ppGL = pCore->pGLCore;
 
   return pCore->isRunning;
 }
