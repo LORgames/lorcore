@@ -36,6 +36,11 @@ uint32_t lorBinary_GetLength(lorBinary *pBinary)
   return pBinary->bytes.length;
 }
 
+bool lorBinary_IsPositionAtEnd(lorBinary *pBinary)
+{
+  return (pBinary->carat == pBinary->bytes.length);
+}
+
 uint32_t lorBinary_GetPosition(lorBinary *pBinary)
 {
   return pBinary->carat;
@@ -48,10 +53,19 @@ void lorBinary_SetPosition(lorBinary *pBinary, uint32_t position)
     pBinary->carat = position;
 }
 
-bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket)
+void lorBinary_Clear(lorBinary *pBinary)
+{
+  pBinary->bytes.Clear();
+  pBinary->carat = 0;
+}
+
+bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket, int *pBytesRead /*= nullptr*/)
 {
   uint8_t bytes[ChunkSize];
   int bytesRead = lorSocket_ReceiveData(pSocket, bytes, sizeof(bytes));
+
+  if (pBytesRead != nullptr)
+    *pBytesRead = bytesRead;
 
   if (bytesRead > 0)
   {
@@ -70,7 +84,7 @@ bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket)
   return false;
 }
 
-bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket)
+bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket, bool clearBuffer /*= true*/)
 {
   uint32_t totalBytes = pBinary->bytes.length;
 
@@ -86,11 +100,8 @@ bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket)
   if(totalBytes > 0 && success)
     success = lorSocket_SendData(pSocket, pBinary->bytes.ppBlocks[i]->data, (uint16_t)totalBytes);
 
-  if (success)
-  {
-    pBinary->bytes.Clear();
-    pBinary->carat = 0;
-  }
+  if (success && clearBuffer)
+    lorBinary_Clear(pBinary);
 
   return success;
 }

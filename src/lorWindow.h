@@ -27,8 +27,14 @@ struct lorWindowEventData_Cursor
   lorVec2i screenPosition;
 };
 
+struct lorWindowEventData_Keyboard
+{
+  int keyCode;
+};
+
 typedef void (lorAppResized)(void *pAppData, lorVec2i newSize);
 typedef void (lorCursorEvent)(void *pAppdata, const lorWindowEventData_Cursor &cursorData);
+typedef void (lorKeyboardEvent)(void *pAppdata, const lorWindowEventData_Keyboard &cursorData);
 
 struct lorWindowSettings
 {
@@ -41,6 +47,9 @@ struct lorWindowSettings
   lorCursorEvent *pCursorMoved;
   lorCursorEvent *pCursorDown;
   lorCursorEvent *pCursorUp;
+
+  lorKeyboardEvent *pKeyDown;
+  lorKeyboardEvent *pKeyUp;
 
   const char *pName;
   void *pAppData;
