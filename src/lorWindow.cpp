@@ -52,15 +52,16 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
       switch (pEvent->type)
       {
       case SDL_KEYDOWN:
-        //lorLog("Key press detected (%i)", pEvent->key.keysym.scancode);
+        if (pCore->pAppSettings->pKeyDown)
+          pCore->pAppSettings->pKeyDown(pCore->pAppSettings->pAppData, { pEvent->key.keysym.sym });
         break;
       case SDL_KEYUP:
-        //lorLog("Key release detected (%i)", pEvent->key.keysym.scancode);
         if (pEvent->key.keysym.sym == SDLK_ESCAPE)
           pCore->isRunning = false;
         else if (pEvent->key.keysym.sym == SDLK_PRINTSCREEN)
           lorGraphicsCore_TakeScreenshot(pCore->pGLCore);
-
+        else if (pCore->pAppSettings->pKeyUp)
+          pCore->pAppSettings->pKeyUp(pCore->pAppSettings->pAppData, { pEvent->key.keysym.sym });
         break;
       case SDL_MOUSEMOTION:
         if (pCore->pAppSettings->pCursorMoved)

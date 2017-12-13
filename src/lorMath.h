@@ -10,6 +10,90 @@
 #define lorPI 3.14159f
 
 ///////////////////////////////////////////////////////////////////////////////
+// Misc Math Functions
+///////////////////////////////////////////////////////////////////////////////
+template<typename T> inline T lorMin(T val0, T val1)
+{
+  return (val0 < val1 ? val0 : val1);
+}
+
+template<typename T> inline T lorMax(T val0, T val1)
+{
+  return (val0 > val1 ? val0 : val1);
+}
+
+template<typename T> inline T lorClamp(T val, T min, T max)
+{
+  return (val < min ? min : (val > max ? max : val));
+}
+
+inline double lorSqrt(double val)
+{
+  return sqrt(val);
+}
+
+inline float lorSqrt(float val)
+{
+  return sqrtf(val);
+}
+
+inline int lorSqrt(int val)
+{
+  return (int)sqrt((double)val);
+}
+
+inline float lorSin(float val)
+{
+  return sinf(val);
+}
+
+inline double lorSin(double val)
+{
+  return sin(val);
+}
+
+inline float lorCos(float val)
+{
+  return cosf(val);
+}
+
+inline double lorCos(double val)
+{
+  return cos(val);
+}
+
+inline int lorPow(int val, int exp)
+{
+  return (int)powf((float)val, (float)exp);
+}
+
+inline float lorPow(float val, float exp)
+{
+  return powf(val, exp);
+}
+
+inline double lorPow(double val, double exp)
+{
+  return pow(val, exp);
+}
+
+inline float lorAbs(float val)
+{
+  return fabsf(val);
+}
+
+inline double lorAbs(double val)
+{
+  return fabs(val);
+}
+
+template<typename T> inline T lorAbs(T val)
+{
+  T mask = (val >> (sizeof(T) * 8 - 1));
+  return (val + mask) ^ mask;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Vector2
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T> struct lorVector2
@@ -525,10 +609,10 @@ struct lorMatrix4
     lorVector4<T> vec2 = { m.a[1].z, m.a[0].z, m.a[0].z, m.a[0].z };
     lorVector4<T> vec3 = { m.a[1].w, m.a[0].w, m.a[0].w, m.a[0].w };
 
-    lorVector4<T> inv0 = { vec1 * fac0 - vec2 * fac1 + vec3 * fac2 };
-    lorVector4<T> inv1 = { vec0 * fac0 - vec2 * fac3 + vec3 * fac4 };
-    lorVector4<T> inv2 = { vec0 * fac1 - vec1 * fac3 + vec3 * fac5 };
-    lorVector4<T> inv3 = { vec0 * fac2 - vec1 * fac4 + vec2 * fac5 };
+    lorVector4<T> inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
+    lorVector4<T> inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
+    lorVector4<T> inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
+    lorVector4<T> inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
 
     lorVector4<T> signA = { +1, -1, +1, -1 };
     lorVector4<T> signB = { -1, +1, -1, +1 };
@@ -675,89 +759,5 @@ typedef lorVector3<float> lorVec3;
 typedef lorVector4<float> lorVec4;
 
 typedef lorMatrix4<float> lorMat4;
-
-///////////////////////////////////////////////////////////////////////////////
-// Misc Math Functions
-///////////////////////////////////////////////////////////////////////////////
-template<typename T> inline T lorMin(T val0, T val1)
-{
-  return (val0 < val1 ? val0 : val1);
-}
-
-template<typename T> inline T lorMax(T val0, T val1)
-{
-  return (val0 > val1 ? val0 : val1);
-}
-
-template<typename T> inline T lorClamp(T val, T min, T max)
-{
-  return (val < min ? min : (val > max ? max : val));
-}
-
-inline double lorSqrt(double val)
-{
-  return sqrt(val);
-}
-
-inline float lorSqrt(float val)
-{
-  return sqrtf(val);
-}
-
-inline int lorSqrt(int val)
-{
-  return (int)sqrt((double)val);
-}
-
-inline float lorSin(float val)
-{
-  return sinf(val);
-}
-
-inline double lorSin(double val)
-{
-  return sin(val);
-}
-
-inline float lorCos(float val)
-{
-  return cosf(val);
-}
-
-inline double lorCos(double val)
-{
-  return cos(val);
-}
-
-inline int lorPow(int val, int exp)
-{
-  return (int)powf((float)val, (float)exp);
-}
-
-inline float lorPow(float val, float exp)
-{
-  return powf(val, exp);
-}
-
-inline double lorPow(double val, double exp)
-{
-  return pow(val, exp);
-}
-
-inline float lorAbs(float val)
-{
-  return fabsf(val);
-}
-
-inline double lorAbs(double val)
-{
-  return fabs(val);
-}
-
-template<typename T> inline T lorAbs(T val)
-{
-  T mask = (val >> (sizeof(T) * 8 - 1));
-  return (val + mask) ^ mask;
-}
 
 #endif //LOR_MATH

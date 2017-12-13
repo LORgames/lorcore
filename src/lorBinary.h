@@ -11,11 +11,14 @@ void lorBinary_Deinit(lorBinary **ppBinary);
 
 uint32_t lorBinary_GetLength(lorBinary *pBinary);
 
+bool lorBinary_IsPositionAtEnd(lorBinary *pBinary);
 uint32_t lorBinary_GetPosition(lorBinary *pBinary);
 void lorBinary_SetPosition(lorBinary *pBinary, uint32_t position);
 
-bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket);
-bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket); //Clears the binary chunk, writes from position 0
+void lorBinary_Clear(lorBinary *pBinary);
+
+bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket, int *pBytesRead = nullptr);
+bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket, bool clearBuffer = true); //Writes entire binary chunk from position 0
 
 void lorBinary_WriteInt8(lorBinary *pBinary, int8_t val);
 void lorBinary_WriteInt16(lorBinary *pBinary, int16_t val);
