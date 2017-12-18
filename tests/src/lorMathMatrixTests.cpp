@@ -38,13 +38,13 @@ TEST(MathMatrix, MatrixCreateFunctionCompileTest)
 
 TEST(MathMatrix, MatrixMultiplyTest)
 {
-  lorMat4 a = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-  lorMat4 b = { 1, 10, 100, 1000, 2, 20, 200, 2000, 3, 30, 300, 3000, 4, 40, 400, 4000 };
+  lorMat4 a = { { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } } };
+  lorMat4 b = { { { 1, 10, 100, 1000, 2, 20, 200, 2000, 3, 30, 300, 3000, 4, 40, 400, 4000 } } };
 
   lorMat4 c = a * b;
 
   //Calculated by hand
-  lorMat4 expected = { 12840, 13951, 15062, 16173, 25680, 27902, 30124, 32346, 38520, 41853, 45186, 48519, 51360, 55804, 60248, 64692 };
+  lorMat4 expected = { { { 12840, 13951, 15062, 16173, 25680, 27902, 30124, 32346, 38520, 41853, 45186, 48519, 51360, 55804, 60248, 64692 } } };
 
   EXPECT_TRUE(c == expected);
 }
@@ -66,4 +66,5 @@ TEST(MathMatrix, MatrixFullMultTest)
   lorVec4 pos1 = viewport * perspective * view * lorVec4::Create(i1, 0.f, 1.f);
 
   EXPECT_FLOAT_EQ(0, pos0.x);
+  EXPECT_FLOAT_EQ(0, pos1.x);
 }

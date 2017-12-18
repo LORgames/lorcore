@@ -440,23 +440,23 @@ struct lorMatrix4
   static lorMatrix4<T> Identity()
   {
     return
-    {
+    { { {
       T(1), T(0), T(0), T(0),
       T(0), T(1), T(0), T(0),
       T(0), T(0), T(1), T(0),
       T(0), T(0), T(0), T(1)
-    };
+    } } };
   };
 
   static lorMatrix4<T> Zero()
   {
     return
-    {
+    { { {
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0)
-    };
+    } } };
   };
 
   static lorMatrix4<T> PerspectiveFov(T fov, T width, T height, T zNear, T zFar)
@@ -694,12 +694,12 @@ template <typename T> lorMatrix4<T> operator -(const lorMatrix4<T> &a, const lor
 template <typename T, typename U> lorMatrix4<T> operator *(const lorMatrix4<T> &a, const U &b)
 {
   return
-  {
+  { { {
     T(a.m[0] * b), T(a.m[1] * b), T(a.m[2] * b), T(a.m[3] * b),
     T(a.m[4] * b), T(a.m[5] * b), T(a.m[6] * b), T(a.m[7] * b),
     T(a.m[8] * b), T(a.m[9] * b), T(a.m[10] * b), T(a.m[11] * b),
     T(a.m[12] * b), T(a.m[13] * b), T(a.m[14] * b), T(a.m[15] * b)
-  };
+  } } };
 };
 
 template <typename T, typename U> lorMatrix4<T> operator /(const lorMatrix4<T> &a, const U &b)
@@ -716,24 +716,24 @@ template <typename T, typename U> lorMatrix4<T> operator /(const lorMatrix4<T> &
 template <typename T> lorMatrix4<T> operator *(const lorMatrix4<T> &a, const lorMatrix4<T> &b)
 {
   return
-  {
+  { { {
     b.m[0] * a.m[0] + b.m[1] * a.m[4] + b.m[2] * a.m[8] + b.m[3] * a.m[12],
     b.m[0] * a.m[1] + b.m[1] * a.m[5] + b.m[2] * a.m[9] + b.m[3] * a.m[13],
-    b.m[0] * a.m[2] + b.m[1] * a.m[6] + b.m[2] * a.m[10] +b.m[3] * a.m[14],
-    b.m[0] * a.m[3] + b.m[1] * a.m[7] + b.m[2] * a.m[11] +b.m[3] * a.m[15],
+    b.m[0] * a.m[2] + b.m[1] * a.m[6] + b.m[2] * a.m[10] + b.m[3] * a.m[14],
+    b.m[0] * a.m[3] + b.m[1] * a.m[7] + b.m[2] * a.m[11] + b.m[3] * a.m[15],
     b.m[4] * a.m[0] + b.m[5] * a.m[4] + b.m[6] * a.m[8] + b.m[7] * a.m[12],
     b.m[4] * a.m[1] + b.m[5] * a.m[5] + b.m[6] * a.m[9] + b.m[7] * a.m[13],
-    b.m[4] * a.m[2] + b.m[5] * a.m[6] + b.m[6] * a.m[10] +b.m[7] * a.m[14],
-    b.m[4] * a.m[3] + b.m[5] * a.m[7] + b.m[6] * a.m[11] +b.m[7] * a.m[15],
-    b.m[8] * a.m[0] + b.m[9] * a.m[4] + b.m[10] *a.m[8] + b.m[11] *a.m[12],
-    b.m[8] * a.m[1] + b.m[9] * a.m[5] + b.m[10] *a.m[9] + b.m[11] *a.m[13],
-    b.m[8] * a.m[2] + b.m[9] * a.m[6] + b.m[10] *a.m[10] +b.m[11] *a.m[14],
-    b.m[8] * a.m[3] + b.m[9] * a.m[7] + b.m[10] *a.m[11] +b.m[11] *a.m[15],
-    b.m[12] *a.m[0] + b.m[13] *a.m[4] + b.m[14] *a.m[8] + b.m[15] *a.m[12],
-    b.m[12] *a.m[1] + b.m[13] *a.m[5] + b.m[14] *a.m[9] + b.m[15] *a.m[13],
-    b.m[12] *a.m[2] + b.m[13] *a.m[6] + b.m[14] *a.m[10] +b.m[15] *a.m[14],
-    b.m[12] *a.m[3] + b.m[13] *a.m[7] + b.m[14] *a.m[11] +b.m[15] *a.m[15]
-  };
+    b.m[4] * a.m[2] + b.m[5] * a.m[6] + b.m[6] * a.m[10] + b.m[7] * a.m[14],
+    b.m[4] * a.m[3] + b.m[5] * a.m[7] + b.m[6] * a.m[11] + b.m[7] * a.m[15],
+    b.m[8] * a.m[0] + b.m[9] * a.m[4] + b.m[10] * a.m[8] + b.m[11] * a.m[12],
+    b.m[8] * a.m[1] + b.m[9] * a.m[5] + b.m[10] * a.m[9] + b.m[11] * a.m[13],
+    b.m[8] * a.m[2] + b.m[9] * a.m[6] + b.m[10] * a.m[10] + b.m[11] * a.m[14],
+    b.m[8] * a.m[3] + b.m[9] * a.m[7] + b.m[10] * a.m[11] + b.m[11] * a.m[15],
+    b.m[12] * a.m[0] + b.m[13] * a.m[4] + b.m[14] * a.m[8] + b.m[15] * a.m[12],
+    b.m[12] * a.m[1] + b.m[13] * a.m[5] + b.m[14] * a.m[9] + b.m[15] * a.m[13],
+    b.m[12] * a.m[2] + b.m[13] * a.m[6] + b.m[14] * a.m[10] + b.m[15] * a.m[14],
+    b.m[12] * a.m[3] + b.m[13] * a.m[7] + b.m[14] * a.m[11] + b.m[15] * a.m[15]
+  } } };
 };
 
 template <typename T> lorVector4<T> operator *(const lorMatrix4<T> &a, const lorVector4<T> &b)
