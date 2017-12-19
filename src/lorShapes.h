@@ -60,4 +60,10 @@ bool lorShapes_PointVsRectangle(const lorVector2<T> &point, const lorRectangle<U
   return (point.x >= rectangle.x && point.x <= rectangle.x + rectangle.w && point.y >= rectangle.y && point.y <= rectangle.y + rectangle.h);
 }
 
+template <typename T, typename U>
+bool lorShapes_RectangleVsRectangle(const lorRectangle<T> &rectA, const lorRectangle<U> &rectB)
+{
+  return !((rectA.x + rectA.w < rectB.x) || (rectA.y + rectA.h < rectB.y) || (rectA.x > rectB.x + rectB.w) || (rectA.y > rectB.y + rectB.h));
+}
+
 #endif
