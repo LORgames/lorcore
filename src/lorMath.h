@@ -431,32 +431,28 @@ template <typename T> lorVector4<T> lorNormalize(const lorVector4<T> &a)
 template <typename T>
 struct lorMatrix4
 {
-  union
-  {
-    T m[16];
-    lorVector4<T> a[4];
-  };
+  T m[16];
 
   static lorMatrix4<T> Identity()
   {
     return
-    { { {
+    { {
       T(1), T(0), T(0), T(0),
       T(0), T(1), T(0), T(0),
       T(0), T(0), T(1), T(0),
       T(0), T(0), T(0), T(1)
-    } } };
+    } };
   };
 
   static lorMatrix4<T> Zero()
   {
     return
-    { { {
+    { {
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0),
       T(0), T(0), T(0), T(0)
-    } } };
+    } };
   };
 
   static lorMatrix4<T> PerspectiveFov(T fov, T width, T height, T zNear, T zFar)
@@ -468,13 +464,14 @@ struct lorMatrix4
     T const w = h * height / width; //Aspect ratio
 
     lorMatrix4<T> retVal = lorMatrix4<T>::Zero();
+    lorVector4<T> *pAxis = (lorVector4<T>*)retVal.m;
 
-    retVal.a[0].x = w;
-    retVal.a[2].y = h;
-    retVal.a[1].w = T(-1);
+    pAxis[0].x = w;
+    pAxis[2].y = h;
+    pAxis[1].w = T(-1);
 
-    retVal.a[1].z = zFar / (zFar - zNear);
-    retVal.a[3].z = -(zFar * zNear) / (zFar - zNear);
+    pAxis[1].z = zFar / (zFar - zNear);
+    pAxis[3].z = -(zFar * zNear) / (zFar - zNear);
 
     return retVal;
   };
@@ -486,18 +483,20 @@ struct lorMatrix4
     lorVector3<T> u = lorCross(s, f); //Z Axis
 
     lorMatrix4<T> retVal = Identity();
-    retVal.a[0].x = s.x;
-    retVal.a[1].x = s.y;
-    retVal.a[2].x = s.z;
-    retVal.a[3].x = lorDot(s, -eye);
-    retVal.a[0].y = f.x;
-    retVal.a[1].y = f.y;
-    retVal.a[2].y = f.z;
-    retVal.a[3].y = lorDot(f, -eye);
-    retVal.a[0].z = u.x;
-    retVal.a[1].z = u.y;
-    retVal.a[2].z = u.z;
-    retVal.a[3].z = lorDot(u, -eye);
+    lorVector4<T> *pAxis = (lorVector4<T>*)retVal.m;
+
+    pAxis[0].x = s.x;
+    pAxis[1].x = s.y;
+    pAxis[2].x = s.z;
+    pAxis[3].x = lorDot(s, -eye);
+    pAxis[0].y = f.x;
+    pAxis[1].y = f.y;
+    pAxis[2].y = f.z;
+    pAxis[3].y = lorDot(f, -eye);
+    pAxis[0].z = u.x;
+    pAxis[1].z = u.y;
+    pAxis[2].z = u.z;
+    pAxis[3].z = lorDot(u, -eye);
 
     return retVal;
   };
@@ -512,13 +511,15 @@ struct lorMatrix4
     T f = farPlane;
 
     lorMatrix4<T> retVal = Identity();
-    retVal.a[0].x = (r - l) / T(2);
-    retVal.a[1].y = (t - b) / T(2);
-    retVal.a[2].z = (f - n) / T(2);
+    lorVector4<T> *pAxis = (lorVector4<T>*)retVal.m;
 
-    retVal.a[3].x = (r + l) / T(2);
-    retVal.a[3].y = (t + b) / T(2);
-    retVal.a[3].z = (f + n) / T(2);
+    pAxis[0].x = (r - l) / T(2);
+    pAxis[1].y = (t - b) / T(2);
+    pAxis[2].z = (f - n) / T(2);
+
+    pAxis[3].x = (r + l) / T(2);
+    pAxis[3].y = (t + b) / T(2);
+    pAxis[3].z = (f + n) / T(2);
 
     return retVal;
   }
@@ -536,40 +537,43 @@ struct lorMatrix4
   static lorMatrix4<T> NonUniformScale(T x, T y, T z, T w = 1.f)
   {
     lorMatrix4<T> retVal = Identity();
-    retVal.a[0].x = x;
-    retVal.a[1].y = y;
-    retVal.a[2].z = z;
-    retVal.a[3].w = w;
+    lorVector4<T> *pAxis = (lorVector4<T>*)retVal.m;
+    pAxis[0].x = x;
+    pAxis[1].y = y;
+    pAxis[2].z = z;
+    pAxis[3].w = w;
     return retVal;
   }
 
   static lorMatrix4<T> AffineInverse(const lorMatrix4<T> &m)
   {
     //Borrowed from GLM
+    lorVector4<T> *pAxis = (lorVector4<T>*)m.m;
 
     T oneOverDeterminant = T(1) / (
-      + m.a[0].x * (m.a[1].y * m.a[2].z - m.a[2].y * m.a[1].z)
-      - m.a[1].x * (m.a[0].y * m.a[2].z - m.a[2].y * m.a[0].z)
-      + m.a[2].x * (m.a[0].y * m.a[1].z - m.a[1].y * m.a[0].z));
+      + pAxis[0].x * (pAxis[1].y * pAxis[2].z - pAxis[2].y * pAxis[1].z)
+      - pAxis[1].x * (pAxis[0].y * pAxis[2].z - pAxis[2].y * pAxis[0].z)
+      + pAxis[2].x * (pAxis[0].y * pAxis[1].z - pAxis[1].y * pAxis[0].z));
 
     lorMatrix4<T> inverse = lorMatrix4<T>::Identity();
+    lorVector4<T> *pInvAxis = (lorVector4<T>*)inverse.m;
 
     //3x3 Part
-    inverse.a[0].x = +(m.a[1].y * m.a[2].z - m.a[2].y * m.a[1].z) * oneOverDeterminant;
-    inverse.a[1].x = -(m.a[1].x * m.a[2].z - m.a[2].x * m.a[1].z) * oneOverDeterminant;
-    inverse.a[2].x = +(m.a[1].x * m.a[2].y - m.a[2].x * m.a[1].y) * oneOverDeterminant;
-    inverse.a[0].y = -(m.a[0].y * m.a[2].z - m.a[2].y * m.a[0].z) * oneOverDeterminant;
-    inverse.a[1].y = +(m.a[0].x * m.a[2].z - m.a[2].x * m.a[0].z) * oneOverDeterminant;
-    inverse.a[2].y = -(m.a[0].x * m.a[2].y - m.a[2].x * m.a[0].y) * oneOverDeterminant;
-    inverse.a[0].z = +(m.a[0].y * m.a[1].z - m.a[1].y * m.a[0].z) * oneOverDeterminant;
-    inverse.a[1].z = -(m.a[0].x * m.a[1].z - m.a[1].x * m.a[0].z) * oneOverDeterminant;
-    inverse.a[2].z = +(m.a[0].x * m.a[1].y - m.a[1].x * m.a[0].y) * oneOverDeterminant;
+    pInvAxis[0].x = +(pAxis[1].y * pAxis[2].z - pAxis[2].y * pAxis[1].z) * oneOverDeterminant;
+    pInvAxis[1].x = -(pAxis[1].x * pAxis[2].z - pAxis[2].x * pAxis[1].z) * oneOverDeterminant;
+    pInvAxis[2].x = +(pAxis[1].x * pAxis[2].y - pAxis[2].x * pAxis[1].y) * oneOverDeterminant;
+    pInvAxis[0].y = -(pAxis[0].y * pAxis[2].z - pAxis[2].y * pAxis[0].z) * oneOverDeterminant;
+    pInvAxis[1].y = +(pAxis[0].x * pAxis[2].z - pAxis[2].x * pAxis[0].z) * oneOverDeterminant;
+    pInvAxis[2].y = -(pAxis[0].x * pAxis[2].y - pAxis[2].x * pAxis[0].y) * oneOverDeterminant;
+    pInvAxis[0].z = +(pAxis[0].y * pAxis[1].z - pAxis[1].y * pAxis[0].z) * oneOverDeterminant;
+    pInvAxis[1].z = -(pAxis[0].x * pAxis[1].z - pAxis[1].x * pAxis[0].z) * oneOverDeterminant;
+    pInvAxis[2].z = +(pAxis[0].x * pAxis[1].y - pAxis[1].x * pAxis[0].y) * oneOverDeterminant;
 
-    lorVector4<T> translation = -inverse * lorVector4<T>::Create(m.a[3].x, m.a[3].y, m.a[3].z, 0.f);
+    lorVector4<T> translation = -inverse * lorVector4<T>::Create(pAxis[3].x, pAxis[3].y, pAxis[3].z, 0.f);
 
-    inverse.a[3].x = translation.x;
-    inverse.a[3].y = translation.y;
-    inverse.a[3].z = translation.z;
+    pInvAxis[3].x = translation.x;
+    pInvAxis[3].y = translation.y;
+    pInvAxis[3].z = translation.z;
 
     return inverse;
   }
@@ -578,24 +582,26 @@ struct lorMatrix4
   {
     //Borrowed from GLM
 
-    T coef00 = m.a[2].z * m.a[3].w - m.a[3].z * m.a[2].w;
-    T coef02 = m.a[1].z * m.a[3].w - m.a[3].z * m.a[1].w;
-    T coef03 = m.a[1].z * m.a[2].w - m.a[2].z * m.a[1].w;
-    T coef04 = m.a[2].y * m.a[3].w - m.a[3].y * m.a[2].w;
-    T coef06 = m.a[1].y * m.a[3].w - m.a[3].y * m.a[1].w;
-    T coef07 = m.a[1].y * m.a[2].w - m.a[2].y * m.a[1].w;
-    T coef08 = m.a[2].y * m.a[3].z - m.a[3].y * m.a[2].z;
-    T coef10 = m.a[1].y * m.a[3].z - m.a[3].y * m.a[1].z;
-    T coef11 = m.a[1].y * m.a[2].z - m.a[2].y * m.a[1].z;
-    T coef12 = m.a[2].x * m.a[3].w - m.a[3].x * m.a[2].w;
-    T coef14 = m.a[1].x * m.a[3].w - m.a[3].x * m.a[1].w;
-    T coef15 = m.a[1].x * m.a[2].w - m.a[2].x * m.a[1].w;
-    T coef16 = m.a[2].x * m.a[3].z - m.a[3].x * m.a[2].z;
-    T coef18 = m.a[1].x * m.a[3].z - m.a[3].x * m.a[1].z;
-    T coef19 = m.a[1].x * m.a[2].z - m.a[2].x * m.a[1].z;
-    T coef20 = m.a[2].x * m.a[3].y - m.a[3].x * m.a[2].y;
-    T coef22 = m.a[1].x * m.a[3].y - m.a[3].x * m.a[1].y;
-    T coef23 = m.a[1].x * m.a[2].y - m.a[2].x * m.a[1].y;
+    lorVector4<T> *pAxis = (lorVector4<T>*)m.m;
+
+    T coef00 = pAxis[2].z * pAxis[3].w - pAxis[3].z * pAxis[2].w;
+    T coef02 = pAxis[1].z * pAxis[3].w - pAxis[3].z * pAxis[1].w;
+    T coef03 = pAxis[1].z * pAxis[2].w - pAxis[2].z * pAxis[1].w;
+    T coef04 = pAxis[2].y * pAxis[3].w - pAxis[3].y * pAxis[2].w;
+    T coef06 = pAxis[1].y * pAxis[3].w - pAxis[3].y * pAxis[1].w;
+    T coef07 = pAxis[1].y * pAxis[2].w - pAxis[2].y * pAxis[1].w;
+    T coef08 = pAxis[2].y * pAxis[3].z - pAxis[3].y * pAxis[2].z;
+    T coef10 = pAxis[1].y * pAxis[3].z - pAxis[3].y * pAxis[1].z;
+    T coef11 = pAxis[1].y * pAxis[2].z - pAxis[2].y * pAxis[1].z;
+    T coef12 = pAxis[2].x * pAxis[3].w - pAxis[3].x * pAxis[2].w;
+    T coef14 = pAxis[1].x * pAxis[3].w - pAxis[3].x * pAxis[1].w;
+    T coef15 = pAxis[1].x * pAxis[2].w - pAxis[2].x * pAxis[1].w;
+    T coef16 = pAxis[2].x * pAxis[3].z - pAxis[3].x * pAxis[2].z;
+    T coef18 = pAxis[1].x * pAxis[3].z - pAxis[3].x * pAxis[1].z;
+    T coef19 = pAxis[1].x * pAxis[2].z - pAxis[2].x * pAxis[1].z;
+    T coef20 = pAxis[2].x * pAxis[3].y - pAxis[3].x * pAxis[2].y;
+    T coef22 = pAxis[1].x * pAxis[3].y - pAxis[3].x * pAxis[1].y;
+    T coef23 = pAxis[1].x * pAxis[2].y - pAxis[2].x * pAxis[1].y;
 
     lorVector4<T> fac0 = { coef00, coef00, coef02, coef03 };
     lorVector4<T> fac1 = { coef04, coef04, coef06, coef07 };
@@ -604,10 +610,10 @@ struct lorMatrix4
     lorVector4<T> fac4 = { coef16, coef16, coef18, coef19 };
     lorVector4<T> fac5 = { coef20, coef20, coef22, coef23 };
 
-    lorVector4<T> vec0 = { m.a[1].x, m.a[0].x, m.a[0].x, m.a[0].x };
-    lorVector4<T> vec1 = { m.a[1].y, m.a[0].y, m.a[0].y, m.a[0].y };
-    lorVector4<T> vec2 = { m.a[1].z, m.a[0].z, m.a[0].z, m.a[0].z };
-    lorVector4<T> vec3 = { m.a[1].w, m.a[0].w, m.a[0].w, m.a[0].w };
+    lorVector4<T> vec0 = { pAxis[1].x, pAxis[0].x, pAxis[0].x, pAxis[0].x };
+    lorVector4<T> vec1 = { pAxis[1].y, pAxis[0].y, pAxis[0].y, pAxis[0].y };
+    lorVector4<T> vec2 = { pAxis[1].z, pAxis[0].z, pAxis[0].z, pAxis[0].z };
+    lorVector4<T> vec3 = { pAxis[1].w, pAxis[0].w, pAxis[0].w, pAxis[0].w };
 
     lorVector4<T> inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
     lorVector4<T> inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
@@ -618,14 +624,16 @@ struct lorMatrix4
     lorVector4<T> signB = { -1, +1, -1, +1 };
 
     lorMatrix4<T> inverse;
-    inverse.a[0] = inv0 * signA;
-    inverse.a[1] = inv1 * signB;
-    inverse.a[2] = inv2 * signA;
-    inverse.a[3] = inv3 * signB;
+    lorVector4<T> *pInvAxis = (lorVector4<T>*)inverse.m;
 
-    lorVector4<T> row0 = { inverse.a[0].x, inverse.a[1].x, inverse.a[2].x, inverse.a[3].x };
+    pInvAxis[0] = inv0 * signA;
+    pInvAxis[1] = inv1 * signB;
+    pInvAxis[2] = inv2 * signA;
+    pInvAxis[3] = inv3 * signB;
 
-    lorVector4<T> dot0 = (m.a[0] * row0);
+    lorVector4<T> row0 = { pInvAxis[0].x, pInvAxis[1].x, pInvAxis[2].x, pInvAxis[3].x };
+
+    lorVector4<T> dot0 = (pAxis[0] * row0);
     T dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
 
     T oneOverDeterminant = T(1) / dot1;
@@ -694,12 +702,12 @@ template <typename T> lorMatrix4<T> operator -(const lorMatrix4<T> &a, const lor
 template <typename T, typename U> lorMatrix4<T> operator *(const lorMatrix4<T> &a, const U &b)
 {
   return
-  { { {
+  { {
     T(a.m[0] * b), T(a.m[1] * b), T(a.m[2] * b), T(a.m[3] * b),
     T(a.m[4] * b), T(a.m[5] * b), T(a.m[6] * b), T(a.m[7] * b),
     T(a.m[8] * b), T(a.m[9] * b), T(a.m[10] * b), T(a.m[11] * b),
     T(a.m[12] * b), T(a.m[13] * b), T(a.m[14] * b), T(a.m[15] * b)
-  } } };
+  } };
 };
 
 template <typename T, typename U> lorMatrix4<T> operator /(const lorMatrix4<T> &a, const U &b)
@@ -716,7 +724,7 @@ template <typename T, typename U> lorMatrix4<T> operator /(const lorMatrix4<T> &
 template <typename T> lorMatrix4<T> operator *(const lorMatrix4<T> &a, const lorMatrix4<T> &b)
 {
   return
-  { { {
+  { {
     b.m[0] * a.m[0] + b.m[1] * a.m[4] + b.m[2] * a.m[8] + b.m[3] * a.m[12],
     b.m[0] * a.m[1] + b.m[1] * a.m[5] + b.m[2] * a.m[9] + b.m[3] * a.m[13],
     b.m[0] * a.m[2] + b.m[1] * a.m[6] + b.m[2] * a.m[10] + b.m[3] * a.m[14],
@@ -733,7 +741,7 @@ template <typename T> lorMatrix4<T> operator *(const lorMatrix4<T> &a, const lor
     b.m[12] * a.m[1] + b.m[13] * a.m[5] + b.m[14] * a.m[9] + b.m[15] * a.m[13],
     b.m[12] * a.m[2] + b.m[13] * a.m[6] + b.m[14] * a.m[10] + b.m[15] * a.m[14],
     b.m[12] * a.m[3] + b.m[13] * a.m[7] + b.m[14] * a.m[11] + b.m[15] * a.m[15]
-  } } };
+  } };
 };
 
 template <typename T> lorVector4<T> operator *(const lorMatrix4<T> &a, const lorVector4<T> &b)

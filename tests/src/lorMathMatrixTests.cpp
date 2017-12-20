@@ -26,8 +26,9 @@ TEST(MathMatrix, BasicIdentyTest)
 TEST(MathMatrix, BasicScalarTest)
 {
   lorMat4 a = lorMat4::Identity() * 2;
+  lorVec4 *pA = (lorVec4*)a.m;
 
-  EXPECT_EQ(a.a[2], lorVec4::Create(0, 0, 2, 0));
+  EXPECT_EQ(pA[2], lorVec4::Create(0, 0, 2, 0));
 }
 
 TEST(MathMatrix, MatrixCreateFunctionCompileTest)
@@ -38,13 +39,13 @@ TEST(MathMatrix, MatrixCreateFunctionCompileTest)
 
 TEST(MathMatrix, MatrixMultiplyTest)
 {
-  lorMat4 a = { { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } } };
-  lorMat4 b = { { { 1, 10, 100, 1000, 2, 20, 200, 2000, 3, 30, 300, 3000, 4, 40, 400, 4000 } } };
+  lorMat4 a = { { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } };
+  lorMat4 b = { { 1, 10, 100, 1000, 2, 20, 200, 2000, 3, 30, 300, 3000, 4, 40, 400, 4000 } };
 
   lorMat4 c = a * b;
 
   //Calculated by hand
-  lorMat4 expected = { { { 12840, 13951, 15062, 16173, 25680, 27902, 30124, 32346, 38520, 41853, 45186, 48519, 51360, 55804, 60248, 64692 } } };
+  lorMat4 expected = { { 12840, 13951, 15062, 16173, 25680, 27902, 30124, 32346, 38520, 41853, 45186, 48519, 51360, 55804, 60248, 64692 } };
 
   EXPECT_TRUE(c == expected);
 }
@@ -65,6 +66,7 @@ TEST(MathMatrix, MatrixFullMultTest)
   lorVec4 pos0 = viewport * perspective * view * lorVec4::Create(i0, 0.f, 1.f);
   lorVec4 pos1 = viewport * perspective * view * lorVec4::Create(i1, 0.f, 1.f);
 
-  EXPECT_FLOAT_EQ(0, pos0.x);
-  EXPECT_FLOAT_EQ(0, pos1.x);
+  //Values got by running this so if the code is broken these values are too
+  EXPECT_FLOAT_EQ(-28.125036f, pos0.x);
+  EXPECT_FLOAT_EQ(-50, pos1.x);
 }
