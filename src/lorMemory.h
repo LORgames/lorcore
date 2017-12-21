@@ -13,7 +13,7 @@
 enum { MemoryPadding = 64 };
 #else
 #define MEMORY_LINEFILE
-#define lorAllocType(type, count) (type*)lorAlloc(sizeof(type)*count)
+#define lorAllocType(type, count) (type*)lorAlloc(sizeof(type)*(count))
 #endif
 
 inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)

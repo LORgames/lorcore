@@ -223,8 +223,7 @@ epilogue:
   if (!openSuccess)
     lorSocket_Deinit(&pSocket);
 
-  if (pSocket != nullptr)
-    *ppSocket = pSocket;
+  *ppSocket = pSocket;
 
   lorLog("\t...Connection %s!", openSuccess ? "Success" : "Failed");
   return openSuccess;
