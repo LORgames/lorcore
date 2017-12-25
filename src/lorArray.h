@@ -21,6 +21,8 @@ struct lorArray
 
   void RemoveSwapLast(size_t index);
 
+  void Sort(int (*pComparisonFunc)(T *pElementA, T *pElementB), size_t start = 0, size_t end = -1);
+
   void CopyFrom(const T *pArray, size_t startIndex, size_t copySize);
   void CopyTo(size_t startIndex, size_t copySize, T *pArray);
 
@@ -251,6 +253,43 @@ inline void lorArray<T, elementsPerBlock>::RemoveSwapLast(size_t index)
     ppBlocks[index / elementsPerBlock]->data[index % elementsPerBlock] = operator[](length - 1);
 
   --length;
+}
+
+template <typename T, uint32_t elementsPerBlock>
+inline void lorArray<T, elementsPerBlock>::Sort(int(*pComparisonFunc)(T *pElementA, T *pElementB), size_t start /*= 0*/, size_t end /*= -1*/)
+{
+  if (end == -1 || end >= length)
+    end = (length - 1);
+
+  if (start < end)
+  {
+    //TODO: Such a bad way to pick a pivot; this is like programmer lvl 1 pivot picking
+    //TBH this entire sort so bad that it's sad
+    T* pPivot = &ppBlocks[(end + offset) / elementsPerBlock]->data[(end + offset) % elementsPerBlock];
+    size_t i = start - 1;
+    {
+      for (size_t j = start; j <= (end - 1); ++j)
+      {
+        if (pComparisonFunc(&ppBlocks[(j + offset) / elementsPerBlock]->data[(j + offset) % elementsPerBlock], pPivot) < 0)
+        {
+          i++;
+          T temp = ppBlocks[(i + offset) / elementsPerBlock]->data[(i + offset) % elementsPerBlock];
+          ppBlocks[(i + offset) / elementsPerBlock]->data[(i + offset) % elementsPerBlock] = ppBlocks[(j + offset) / elementsPerBlock]->data[(j + offset) % elementsPerBlock];
+          ppBlocks[(j + offset) / elementsPerBlock]->data[(j + offset) % elementsPerBlock] = temp;
+        }
+      }
+
+      if (pComparisonFunc(pPivot, &ppBlocks[(i + 1 + offset) / elementsPerBlock]->data[(i + 1 + offset) % elementsPerBlock]) < 0)
+      {
+        T temp = ppBlocks[(i + 1 + offset) / elementsPerBlock]->data[(i + 1 + offset) % elementsPerBlock];
+        ppBlocks[(i + 1 + offset) / elementsPerBlock]->data[(i + 1 + offset) % elementsPerBlock] = ppBlocks[(end + offset) / elementsPerBlock]->data[(end + offset) % elementsPerBlock];
+        ppBlocks[(end + offset) / elementsPerBlock]->data[(end + offset) % elementsPerBlock] = temp;
+      }
+    }
+
+    Sort(pComparisonFunc, start, i);
+    return Sort(pComparisonFunc, i + 2, end); //Tail call
+  }
 }
 
 template <typename T, uint32_t elementsPerBlock>

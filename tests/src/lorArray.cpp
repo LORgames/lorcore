@@ -110,3 +110,62 @@ TEST(Array, CopyToTest)
 
   testArray.Deinit();
 }
+
+int compareIntsAsc(int *pEleA, int *pEleB)
+{
+  if (*pEleA < *pEleB)
+    return -1;
+  else if (*pEleA > *pEleB)
+    return 1;
+
+  return 0;
+}
+
+int compareIntsDesc(int *pEleA, int *pEleB)
+{
+  if (*pEleA < *pEleB)
+    return 1;
+  else if (*pEleA > *pEleB)
+    return -1;
+
+  return 0;
+}
+
+TEST(Array, Sort)
+{
+  const int unSortedValues[] = { 6, 1, 2, 9, 7, 3, 0, 4, 8, 5 };
+  const int sortedValuesAsc[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  const int sortedValuesDesc[] = { 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 };
+
+  lorArray<int, 32> numbers;
+  numbers.Init();
+
+  numbers.CopyFrom(unSortedValues, 0, sizeof(unSortedValues) / sizeof(unSortedValues[0]));
+
+  //Sort and test now asc
+  numbers.Sort(compareIntsAsc);
+
+  for (size_t i = 0; i < numbers.length; ++i)
+  {
+    EXPECT_EQ(numbers[i], sortedValuesAsc[i]);
+  }
+
+  //Try again to make sure running twice doesn't break it
+  numbers.Sort(compareIntsAsc);
+
+  for (size_t i = 0; i < numbers.length; ++i)
+  {
+    EXPECT_EQ(numbers[i], sortedValuesAsc[i]);
+  }
+
+  //Now try swap to desc
+  numbers.Sort(compareIntsDesc);
+
+  for (size_t i = 0; i < numbers.length; ++i)
+  {
+    EXPECT_EQ(numbers[i], sortedValuesDesc[i]);
+  }
+
+  //All tested
+  numbers.Deinit();
+}
