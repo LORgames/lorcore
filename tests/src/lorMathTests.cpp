@@ -55,3 +55,35 @@ TEST(BasicMath, Max)
   EXPECT_DOUBLE_EQ(9.0, lorMax(3.0, 9.0));
   EXPECT_DOUBLE_EQ(12.0, lorMax(0.0, 12.0));
 }
+
+
+TEST(BasicMath, Round)
+{
+  EXPECT_EQ(-3, lorRound(-3));
+  EXPECT_EQ(6, lorRound(6));
+  EXPECT_EQ(0, lorRound(0));
+
+  //Float tests
+  EXPECT_FLOAT_EQ(-3.f, lorRound(-3.f));
+  EXPECT_FLOAT_EQ(6.f, lorRound(6.f));
+  EXPECT_FLOAT_EQ(0.f, lorRound(0.f));
+  EXPECT_FLOAT_EQ(-3.f, lorRound(-3.1f));
+  EXPECT_FLOAT_EQ(6.f, lorRound(5.9f));
+  EXPECT_FLOAT_EQ(0.f, lorRound(0.4f));
+
+  EXPECT_FLOAT_EQ(1.f, lorRound(0.51f));
+  EXPECT_FLOAT_EQ(1.f, lorRound(0.50f));
+  EXPECT_FLOAT_EQ(0.f, lorRound(0.49f));
+
+  //Same for double
+  EXPECT_DOUBLE_EQ(-3.0, lorRound(-3.0));
+  EXPECT_DOUBLE_EQ(6.0, lorRound(6.0));
+  EXPECT_DOUBLE_EQ(0.0, lorRound(0.0));
+  EXPECT_DOUBLE_EQ(-3.0, lorRound(-3.1));
+  EXPECT_DOUBLE_EQ(6.0, lorRound(5.9));
+  EXPECT_DOUBLE_EQ(0.0, lorRound(0.4));
+
+  EXPECT_DOUBLE_EQ(1.0, lorRound(0.51));
+  EXPECT_DOUBLE_EQ(1.0, lorRound(0.50));
+  EXPECT_DOUBLE_EQ(0.0, lorRound(0.49));
+}
