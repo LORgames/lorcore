@@ -93,6 +93,24 @@ template<typename T> inline T lorAbs(T val)
   return (val + mask) ^ mask;
 }
 
+inline float lorRound(float val)
+{
+  return roundf(val);
+}
+
+inline double lorRound(double val)
+{
+  return round(val);
+}
+
+template<typename T> inline T lorRound(T val)
+{
+  if (T(0.1) == T(0))
+    return val;
+  else
+    return (T)lorRound((double)val);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Vector2
 ///////////////////////////////////////////////////////////////////////////////
