@@ -121,14 +121,40 @@ void lorBinary_WriteInt(lorBinary *pBinary, T val)
 }
 
 //Intentionally single line
-void lorBinary_WriteInt8(lorBinary *pBinary, int8_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteInt16(lorBinary *pBinary, int16_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteInt32(lorBinary *pBinary, int32_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteInt64(lorBinary *pBinary, int64_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteUint8(lorBinary *pBinary, uint8_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteUint16(lorBinary *pBinary, uint16_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteUint32(lorBinary *pBinary, uint32_t val) { lorBinary_WriteInt(pBinary, val); }
-void lorBinary_WriteUint64(lorBinary *pBinary, uint64_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteInt8(lorBinary *pBinary, const int8_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteInt16(lorBinary *pBinary, const int16_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteInt32(lorBinary *pBinary, const int32_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteInt64(lorBinary *pBinary, const int64_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteUint8(lorBinary *pBinary, const uint8_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteUint16(lorBinary *pBinary, const uint16_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteUint32(lorBinary *pBinary, const uint32_t val) { lorBinary_WriteInt(pBinary, val); }
+void lorBinary_WriteUint64(lorBinary *pBinary, const uint64_t val) { lorBinary_WriteInt(pBinary, val); }
+
+void lorBinary_WriteStringFixedLength(lorBinary *pBinary, const char *pStr, uint32_t numBytes)
+{
+  for (uint32_t i = 0; i < numBytes; ++i)
+    lorBinary_WriteInt(pBinary, ((uint8_t*)pStr)[i]);
+}
+
+void lorBinary_WriteStringPascal16(lorBinary *pBinary, const char *pStr)
+{
+  //Pascal strings don't include null terminator
+  uint16_t length = (uint16_t)lorMin(lorStrlen(pStr), (size_t)UINT16_MAX);
+  lorBinary_WriteInt(pBinary, length);
+
+  for (uint32_t i = 0; i < length; ++i)
+    lorBinary_WriteInt(pBinary, ((uint8_t*)pStr)[i]);
+}
+
+void lorBinary_WriteStringNullTerminated(lorBinary *pBinary, const char *pStr)
+{
+  for(size_t i = 0; ; ++i)
+  {
+    lorBinary_WriteInt(pBinary, ((uint8_t*)pStr)[i]);
+    if (pStr[i] == '\0')
+      break;
+  }
+}
 
 template<typename T>
 T lorBinary_ReadInt(lorBinary *pBinary)
@@ -140,7 +166,7 @@ T lorBinary_ReadInt(lorBinary *pBinary)
 
   for (int i = 0; i < sizeof(T); ++i)
   {
-    temp |= (pBinary->bytes[pBinary->carat] << (i * 8));
+    temp |= (((T)pBinary->bytes[pBinary->carat]) << (i * 8));
     ++pBinary->carat;
   }
 
@@ -155,3 +181,83 @@ uint8_t lorBinary_ReadUint8(lorBinary *pBinary) { return lorBinary_ReadInt<uint8
 uint16_t lorBinary_ReadUint16(lorBinary *pBinary) { return lorBinary_ReadInt<uint16_t>(pBinary); }
 uint32_t lorBinary_ReadUint32(lorBinary *pBinary) { return lorBinary_ReadInt<uint32_t>(pBinary); }
 uint64_t lorBinary_ReadUint64(lorBinary *pBinary) { return lorBinary_ReadInt<uint64_t>(pBinary); }
+
+const char* lorBinary_ReadStringFixedLength(lorBinary *pBinary, uint32_t numBytes)
+{
+  char *pData = lorAllocType(char, numBytes);
+
+  for (uint32_t i = 0; i < numBytes; ++i)
+    pData[i] = lorBinary_ReadInt<int8_t>(pBinary);
+
+  return pData;
+}
+
+const char* lorBinary_ReadStringPascal16(lorBinary *pBinary)
+{
+  uint16_t numBytes = lorBinary_ReadInt<uint16_t>(pBinary);
+  char *pData = lorAllocType(char, numBytes+1); //+1 for null terminator
+
+  for (uint32_t i = 0; i < numBytes; ++i)
+    pData[i] = lorBinary_ReadInt<int8_t>(pBinary);
+
+  return pData;
+}
+
+const char* lorBinary_ReadStringNullTerminated(lorBinary *pBinary)
+{
+  uint16_t numBytes = 0;
+
+  for (uint32_t i = pBinary->carat; pBinary->bytes.length; ++i)
+  {
+    ++numBytes;
+    if (pBinary->bytes[i] == '\0')
+      break;
+  }
+
+  char *pData = lorAllocType(char, numBytes);
+
+  for (uint32_t i = 0; i < numBytes; ++i)
+    pData[i] = lorBinary_ReadInt<int8_t>(pBinary);
+
+  return pData;
+}
+
+bool lorBinary_ReadStringFixedLength(lorBinary *pBinary, char *pBuffer, uint32_t numBytes)
+{
+  if (pBinary->carat + numBytes > pBinary->bytes.length)
+    return false;
+
+  for (uint32_t i = 0; i < numBytes; ++i)
+    pBuffer[i] = lorBinary_ReadInt<int8_t>(pBinary);
+
+  return true;
+}
+
+bool lorBinary_ReadStringPascal16(lorBinary *pBinary, char *pBuffer, uint32_t bufferSize)
+{
+  uint16_t numBytes = lorBinary_ReadInt<uint16_t>(pBinary);
+
+  if (numBytes + 1U >= bufferSize) //+1 for the null terminator
+    return false;
+
+  pBuffer[numBytes] = '\0';
+
+  return lorBinary_ReadStringFixedLength(pBinary, pBuffer, numBytes);
+}
+
+bool lorBinary_ReadStringNullTerminated(lorBinary *pBinary, char *pBuffer, uint32_t bufferSize)
+{
+  uint16_t numBytes = 0;
+
+  for (uint32_t i = pBinary->carat; pBinary->bytes.length; ++i)
+  {
+    ++numBytes;
+    if (pBinary->bytes[i] == '\0')
+      break;
+  }
+
+  if (numBytes >= bufferSize)
+    return false;
+
+  return lorBinary_ReadStringFixedLength(pBinary, pBuffer, numBytes);
+}
