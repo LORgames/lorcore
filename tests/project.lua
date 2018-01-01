@@ -11,7 +11,7 @@ project ("lorcoretests" .. (projectsuffix or ""))
 
   includedirs { "src" }
 
-  links { "googletest" .. (projectsuffix or "") }
+  links { "googletest" .. (projectsuffix or ""), "mbedtls" .. (projectsuffix or "") }
   includedirs { "../external/src/googletest/include" }
 
   links { "lorcore" .. (projectsuffix or "") }
