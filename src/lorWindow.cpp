@@ -140,8 +140,11 @@ bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_
     return false;
   }
 
+  const char *pCertificateContents = (const char*)lorFile_LoadAssetFile(ASSETDIR "LORgamesSSLCACertificate.pem");
+  bool createdNetworkingSystem = lorSocket_InitSystem(pCertificateContents);
+  lorFree(pCertificateContents);
 
-  if (!lorSocket_InitSystem((const char*)lorFile_LoadAssetFile(ASSETDIR "LORgamesSSLCACertificate.pem")))
+  if(!createdNetworkingSystem)
   {
     lorLog("Could not start socket system!");
     return false;
