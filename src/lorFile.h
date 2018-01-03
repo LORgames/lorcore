@@ -1,8 +1,8 @@
 #ifndef LOR_FILE
 #define LOR_FILE
 
-#include <stdio.h>
+#include "lorMath.h"
 
-FILE* lorFile_OpenUserFile(const char* pFilename, const char *pMode);
+uint8_t* lorFile_LoadAssetFile(const char *pFilename); //Requires lorFree after; returns nullptr on failure
 
 #endif //LOR_SETTINGS

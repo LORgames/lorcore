@@ -29,27 +29,44 @@ typedef int SOCKET;
 #define SOCKET_ERROR            (-1)
 #endif //INVALID_SOCKET
 
+static struct
+{
+  mbedtls_entropy_context entropy;
+  mbedtls_x509_crt certificateChain;
+} g_sharedSocketData;
+
 struct lorSocket
 {
-  SOCKET sockID;
+  SOCKET basicSocket;
   bool isServer;
   bool isSecure;
 
-  union
+  struct
   {
-    struct
-    {
-      mbedtls_net_context server_fd;
-      mbedtls_entropy_context entropy;
-      mbedtls_ctr_drbg_context ctr_drbg;
-      mbedtls_ssl_context ssl;
-      mbedtls_ssl_config conf;
-    } tlsClient;
-  };
+    mbedtls_net_context socketContext; //The actual socket
+    mbedtls_ctr_drbg_context ctr_drbg; //The encryption context
+    mbedtls_ssl_context ssl; //The socket to encryption context
+    mbedtls_ssl_config conf;
+
+    //Additional server things
+    mbedtls_x509_crt certificateServer;
+    mbedtls_pk_context publicKey;
+  } tlsClient;
 };
 
-bool lorSocket_InitSystem()
+bool lorSocket_InitSystem(const char *pCertificateChain /*= nullptr*/)
 {
+  mbedtls_entropy_init(&g_sharedSocketData.entropy);
+  mbedtls_x509_crt_init(&g_sharedSocketData.certificateChain);
+
+  //LOAD CA CERTIFICATES
+  if (pCertificateChain != nullptr)
+  {
+    int retVal = mbedtls_x509_crt_parse(&g_sharedSocketData.certificateChain, (const unsigned char *)pCertificateChain, lorStrlen(pCertificateChain)+1);
+    if (retVal != 0)
+      lorLog("Could not parse certificate chain Error: -0x%x", -retVal);
+  }
+
 #ifdef _MSC_VER
   WSADATA wsa_data;
   return (WSAStartup(MAKEWORD(1, 1), &wsa_data) == 0);
@@ -60,6 +77,9 @@ bool lorSocket_InitSystem()
 
 bool lorSocket_DeinitSystem()
 {
+  mbedtls_entropy_free(&g_sharedSocketData.entropy);
+  mbedtls_x509_crt_free(&g_sharedSocketData.certificateChain);
+
 #ifdef _MSC_VER
   return (WSACleanup() == 0);
 #else
@@ -78,7 +98,10 @@ int lorSocket_GetErrorCode()
 
 bool lorSocket_IsValidSocket(lorSocket *pSocket)
 {
-  return (pSocket->sockID != INVALID_SOCKET);
+  if (pSocket->isSecure)
+    return (pSocket->tlsClient.socketContext.fd != INVALID_SOCKET && pSocket->tlsClient.socketContext.fd != 0);
+  else
+    return (pSocket->basicSocket != INVALID_SOCKET);
 }
 
 
@@ -87,7 +110,7 @@ static void lorSocketMBEDDebug(void * /*pUserData*/, int /*level*/, const char *
   lorLog("%s:%04d: %s", file, line, str);
 }
 
-bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags)
+bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags, const char *pPrivateKey /*= nullptr*/, const char *pPublicCertificate /*= nullptr*/)
 {
   if (ppSocket == nullptr)
     return false;
@@ -107,39 +130,98 @@ bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, l
 
   if (isSecure)
   {
-    mbedtls_net_init(&pSocket->tlsClient.server_fd);
+    //Init everything
+    mbedtls_net_init(&pSocket->tlsClient.socketContext);
     mbedtls_ssl_init(&pSocket->tlsClient.ssl);
     mbedtls_ssl_config_init(&pSocket->tlsClient.conf);
-    //mbedtls_x509_crt_init(&pSocket->tlsClient.cacert);
     mbedtls_ctr_drbg_init(&pSocket->tlsClient.ctr_drbg);
+    mbedtls_x509_crt_init(&pSocket->tlsClient.certificateServer);
 
-    mbedtls_entropy_init(&pSocket->tlsClient.entropy);
-    retVal = mbedtls_ctr_drbg_seed(&pSocket->tlsClient.ctr_drbg, mbedtls_entropy_func, &pSocket->tlsClient.entropy, nullptr, 0);
-
+    //Set up encryption things
+    retVal = mbedtls_ctr_drbg_seed(&pSocket->tlsClient.ctr_drbg, mbedtls_entropy_func, &g_sharedSocketData.entropy, nullptr, 0);
     if (retVal != 0)
     {
-      lorLog(" failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", retVal);
+      lorLog(" failed! mbedtls_ctr_drbg_seed returned %d", retVal);
       goto epilogue;
     }
 
+    //Setup the port string
     char portStr[6];
     lorSprintf(portStr, 6, "%d", port);
-    retVal = mbedtls_net_connect(&pSocket->tlsClient.server_fd, pAddress, portStr, MBEDTLS_NET_PROTO_TCP);
-    if (retVal != 0)
-    {
-      lorLog(" failed\n  ! mbedtls_net_connect returned %d\n\n", retVal);
-      goto epilogue;
-    }
 
-    retVal = mbedtls_ssl_config_defaults(&pSocket->tlsClient.conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
-    if (retVal != 0)
+    //Branch for server/client differences
+    if (isServer)
     {
-      lorLog(" failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", retVal);
-      goto epilogue;
-    }
+      if (pPrivateKey == nullptr || pPublicCertificate == nullptr)
+      {
+        lorLog("Certificate and private key cannot be null if running a secure server!");
+        goto epilogue;
+      }
 
-    //TODO: Has to be removed before we ship...
-    mbedtls_ssl_conf_authmode(&pSocket->tlsClient.conf, MBEDTLS_SSL_VERIFY_NONE);
+      //Set up server certificate
+      retVal = mbedtls_x509_crt_parse(&pSocket->tlsClient.certificateServer, (const unsigned char *)pPublicCertificate, lorStrlen(pPublicCertificate)+1);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_x509_crt_parse returned %d", retVal);
+        goto epilogue;
+      }
+
+      //Set up public key
+      mbedtls_pk_init(&pSocket->tlsClient.publicKey);
+      retVal = mbedtls_pk_parse_key(&pSocket->tlsClient.publicKey, (const unsigned char *)pPrivateKey, lorStrlen(pPrivateKey)+1, NULL, 0);
+      if (retVal != 0)
+      {
+        lorLog(" failed!  mbedtls_pk_parse_key returned %d", retVal);
+        goto epilogue;
+      }
+
+      //Bind
+      lorLog(" TLS Socket Bind on %s:%s", pAddress, portStr);
+      retVal = mbedtls_net_bind(&pSocket->tlsClient.socketContext, pAddress, portStr, MBEDTLS_NET_PROTO_TCP);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_net_bind returned %d", retVal);
+        goto epilogue;
+      }
+
+      //Set up config stuff for server
+      retVal = mbedtls_ssl_config_defaults(&pSocket->tlsClient.conf, MBEDTLS_SSL_IS_SERVER, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_ssl_config_defaults returned %d", retVal);
+        goto epilogue;
+      }
+
+      //Link certificate chains
+      mbedtls_ssl_conf_ca_chain(&pSocket->tlsClient.conf, &g_sharedSocketData.certificateChain, NULL);
+      retVal = mbedtls_ssl_conf_own_cert(&pSocket->tlsClient.conf, &pSocket->tlsClient.certificateServer, &pSocket->tlsClient.publicKey);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_ssl_conf_own_cert returned %d", retVal);
+        goto epilogue;
+      }
+    }
+    else //Is Client
+    {
+      //Connect
+      retVal = mbedtls_net_connect(&pSocket->tlsClient.socketContext, pAddress, portStr, MBEDTLS_NET_PROTO_TCP);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_net_connect returned %d", retVal);
+        goto epilogue;
+      }
+
+      //Config stuff
+      retVal = mbedtls_ssl_config_defaults(&pSocket->tlsClient.conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+      if (retVal != 0)
+      {
+        lorLog(" failed! mbedtls_ssl_config_defaults returned %d", retVal);
+        goto epilogue;
+      }
+
+      //TODO: Has to be removed before we ship...
+      mbedtls_ssl_conf_authmode(&pSocket->tlsClient.conf, MBEDTLS_SSL_VERIFY_NONE);
+    }
 
     //Required
     mbedtls_ssl_conf_rng(&pSocket->tlsClient.conf, mbedtls_ctr_drbg_random, &pSocket->tlsClient.ctr_drbg);
@@ -148,31 +230,34 @@ bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, l
     retVal = mbedtls_ssl_setup(&pSocket->tlsClient.ssl, &pSocket->tlsClient.conf);
     if (retVal != 0)
     {
-      lorLog(" failed\n  ! mbedtls_ssl_setup returned %d\n\n", retVal);
+      lorLog(" failed! mbedtls_ssl_setup returned %d", retVal);
       goto epilogue;
     }
 
-    retVal = mbedtls_ssl_set_hostname(&pSocket->tlsClient.ssl, pAddress);
-    if (retVal != 0)
+    if (!isServer)
     {
-      lorLog(" failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", retVal);
-      goto epilogue;
-    }
-
-    mbedtls_ssl_set_bio(&pSocket->tlsClient.ssl, &pSocket->tlsClient.server_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
-
-    do
-    {
-      retVal = mbedtls_ssl_handshake(&pSocket->tlsClient.ssl);
-      if (retVal == 0)
-        break;
-
-      if (retVal != MBEDTLS_ERR_SSL_WANT_READ && retVal != MBEDTLS_ERR_SSL_WANT_WRITE)
+      retVal = mbedtls_ssl_set_hostname(&pSocket->tlsClient.ssl, pAddress);
+      if (retVal != 0)
       {
-        lorLog(" failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -retVal);
+        lorLog(" failed! mbedtls_ssl_set_hostname returned %d", retVal);
         goto epilogue;
       }
-    } while (retVal != 0);
+
+      mbedtls_ssl_set_bio(&pSocket->tlsClient.ssl, &pSocket->tlsClient.socketContext, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+      do
+      {
+        retVal = mbedtls_ssl_handshake(&pSocket->tlsClient.ssl);
+        if (retVal == 0)
+          break;
+
+        if (retVal != MBEDTLS_ERR_SSL_WANT_READ && retVal != MBEDTLS_ERR_SSL_WANT_WRITE)
+        {
+          lorLog(" failed! mbedtls_ssl_handshake returned -0x%x", -retVal);
+          goto epilogue;
+        }
+      } while (retVal != 0);
+    }
   }
   else
   {
@@ -189,7 +274,7 @@ bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, l
     if (retVal != 0)
       goto epilogue;
 
-    pSocket->sockID = socket(pOutAddr->ai_family, pOutAddr->ai_socktype, pOutAddr->ai_protocol);
+    pSocket->basicSocket = socket(pOutAddr->ai_family, pOutAddr->ai_socktype, pOutAddr->ai_protocol);
 
     if (!lorSocket_IsValidSocket(pSocket))
       goto epilogue;
@@ -198,17 +283,17 @@ bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, l
     {
       pSocket->isServer = true;
 
-      retVal = bind(pSocket->sockID, pOutAddr->ai_addr, (int)pOutAddr->ai_addrlen);
+      retVal = bind(pSocket->basicSocket, pOutAddr->ai_addr, (int)pOutAddr->ai_addrlen);
       if (retVal == SOCKET_ERROR)
         goto epilogue;
 
-      retVal = listen(pSocket->sockID, SOMAXCONN);
+      retVal = listen(pSocket->basicSocket, SOMAXCONN);
       if (retVal == SOCKET_ERROR)
         goto epilogue;
     }
     else
     {
-      retVal = connect(pSocket->sockID, pOutAddr->ai_addr, (int)pOutAddr->ai_addrlen);
+      retVal = connect(pSocket->basicSocket, pOutAddr->ai_addr, (int)pOutAddr->ai_addrlen);
       if (retVal == SOCKET_ERROR)
         goto epilogue;
     }
@@ -234,21 +319,23 @@ bool lorSocket_Deinit(lorSocket **ppSocket)
   if (*ppSocket == nullptr)
     return true;
 
-  if (!(*ppSocket)->isSecure)
+  if ((*ppSocket)->isSecure)
   {
     lorSocket *pSocket = *ppSocket;
-    mbedtls_net_free(&pSocket->tlsClient.server_fd);
+    mbedtls_net_free(&pSocket->tlsClient.socketContext);
     mbedtls_ssl_free(&pSocket->tlsClient.ssl);
     mbedtls_ssl_config_free(&pSocket->tlsClient.conf);
     mbedtls_ctr_drbg_free(&pSocket->tlsClient.ctr_drbg);
-    mbedtls_entropy_free(&pSocket->tlsClient.entropy);
+
+    mbedtls_x509_crt_free(&pSocket->tlsClient.certificateServer);
+    mbedtls_pk_free(&pSocket->tlsClient.publicKey);
   }
   else
   {
 #ifdef _MSC_VER
-    closesocket((*ppSocket)->sockID);
+    closesocket((*ppSocket)->basicSocket);
 #else
-    close((*ppSocket)->sockID);
+    close((*ppSocket)->basicSocket);
 #endif
   }
 
@@ -268,13 +355,13 @@ bool lorSocket_SendData(lorSocket *pSocket, const uint8_t *pBytes, uint16_t tota
     int status = mbedtls_ssl_write(&pSocket->tlsClient.ssl, pBytes, totalBytes);
 
     if (status < 0)
-      return false; //this is really important to close socket somehow
+      return false; //TODO: this is really important to close socket somehow
 
     return (totalBytes == status);
   }
   else
   {
-    return (totalBytes == (int)send(pSocket->sockID, (const char*)pBytes, totalBytes, 0));
+    return (totalBytes == (int)send(pSocket->basicSocket, (const char*)pBytes, totalBytes, 0));
   }
 }
 
@@ -283,12 +370,12 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
   if (pSocket == nullptr || pBytes == nullptr || bufferSize == 0 || pSocket->isServer)
     return 0;
 
-  if (blockForever || pSocket->isSecure)
+  if (blockForever)
   {
     if (pSocket->isSecure)
       return mbedtls_ssl_read(&pSocket->tlsClient.ssl, pBytes, bufferSize);
     else
-      return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
+      return (int)recv(pSocket->basicSocket, (char*)pBytes, bufferSize, 0);
   }
   else
   {
@@ -299,12 +386,18 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
     tv.tv_usec = 1; //0 was wait forever?
 
     FD_ZERO(&readfds);
-    FD_SET(pSocket->sockID, &readfds);
+
+    if (pSocket->isSecure)
+      FD_SET(pSocket->tlsClient.socketContext.fd, &readfds);
+    else
+      FD_SET(pSocket->basicSocket, &readfds);
 
     select(0, &readfds, nullptr, nullptr, &tv);
 
-    if (FD_ISSET(pSocket->sockID, &readfds))
-      return (int)recv(pSocket->sockID, (char*)pBytes, bufferSize, 0);
+    if (pSocket->isSecure && FD_ISSET(pSocket->tlsClient.socketContext.fd, &readfds))
+      return mbedtls_ssl_read(&pSocket->tlsClient.ssl, pBytes, bufferSize);
+    else if(!pSocket->isSecure && FD_ISSET(pSocket->basicSocket, &readfds))
+      return (int)recv(pSocket->basicSocket, (char*)pBytes, bufferSize, 0);
   }
 
   return 0;
@@ -324,18 +417,81 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   tv.tv_usec = 1; //0 is wait forever?
 
   FD_ZERO(&readfds);
-  FD_SET(pServerSocket->sockID, &readfds);
+
+  if(pServerSocket->isSecure)
+    FD_SET(pServerSocket->tlsClient.socketContext.fd, &readfds);
+  else
+    FD_SET(pServerSocket->basicSocket, &readfds);
 
   select(0, &readfds, nullptr, nullptr, &tv);
 
-  if (FD_ISSET(pServerSocket->sockID, &readfds))
+  if (pServerSocket->isSecure && FD_ISSET(pServerSocket->tlsClient.socketContext.fd, &readfds))
   {
-    SOCKET clientSocket = accept(pServerSocket->sockID, nullptr, nullptr);
+    mbedtls_net_context clientContext;
+    char clientIP[64];
+    size_t clientBytesReturned;
+
+    //Accept the client
+    int retVal = mbedtls_net_accept(&pServerSocket->tlsClient.socketContext, &clientContext, clientIP, sizeof(clientIP), &clientBytesReturned);
+    if (retVal != 0)
+    {
+      lorLog("Failed somehow to accept tls client?");
+      return false;
+    }
+
+    (*ppClientSocket) = lorAllocType(lorSocket, 1);
+    lorSocket *pClientSocket = *ppClientSocket;
+
+    pClientSocket->isSecure = true;
+    pClientSocket->tlsClient.socketContext = clientContext;
+
+    //Handle SSL
+    /* Make sure memory references are valid */
+    mbedtls_ssl_init(&pClientSocket->tlsClient.ssl);
+
+    lorLog("  Setting up SSL/TLS data");
+
+    //Copy the config?
+    retVal = mbedtls_ssl_setup(&pClientSocket->tlsClient.ssl, &pServerSocket->tlsClient.conf);
+    if (retVal != 0)
+    {
+      lorLog("  failed! mbedtls_ssl_setup returned -0x%04x", -retVal);
+      goto sslfail;
+    }
+
+    mbedtls_ssl_set_bio(&pClientSocket->tlsClient.ssl, &pClientSocket->tlsClient.socketContext, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+    //Handshake
+
+    do
+    {
+      retVal = mbedtls_ssl_handshake(&pClientSocket->tlsClient.ssl);
+      if (retVal == 0)
+        break;
+
+      if (retVal != MBEDTLS_ERR_SSL_WANT_READ && retVal != MBEDTLS_ERR_SSL_WANT_WRITE)
+      {
+        lorLog(" failed! mbedtls_ssl_handshake returned -0x%x", -retVal);
+        goto sslfail;
+      }
+    } while (retVal != 0);
+
+    lorLog("  Client accepted and secured");
+    return true;
+
+  sslfail:
+    //Cleanup
+
+    return false;
+  }
+  else if (!pServerSocket->isSecure && FD_ISSET(pServerSocket->basicSocket, &readfds))
+  {
+    SOCKET clientSocket = accept(pServerSocket->basicSocket, nullptr, nullptr);
 
     if (clientSocket != INVALID_SOCKET)
     {
       (*ppClientSocket) = lorAllocType(lorSocket, 1);
-      (*ppClientSocket)->sockID = clientSocket;
+      (*ppClientSocket)->basicSocket = clientSocket;
       return true;
     }
   }
