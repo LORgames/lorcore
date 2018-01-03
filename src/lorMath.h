@@ -105,7 +105,8 @@ inline double lorRound(double val)
 
 template<typename T> inline T lorRound(T val)
 {
-  if (T(0.1) == T(0))
+  constexpr bool isIntType = (T(0.1) == T(0));
+  if (isIntType)
     return val;
   else
     return (T)lorRound((double)val);
