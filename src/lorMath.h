@@ -112,6 +112,17 @@ template<typename T> inline T lorRound(T val)
     return (T)lorRound((double)val);
 }
 
+//Implementation of xorshift64star from wikipedia
+inline uint32_t lorRandom(uint64_t &state) //Note that state cannot be 0
+{
+  uint64_t x = state;
+  x ^= x >> 12; // a
+  x ^= x << 25; // b
+  x ^= x >> 27; // c
+  state = x;
+  return (uint32_t)((x * 0x2545F4914F6CDD1D) & 0xFFFFFFFF);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Vector2
 ///////////////////////////////////////////////////////////////////////////////

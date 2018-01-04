@@ -1,9 +1,8 @@
 #ifndef LOR_MEMORY
 #define LOR_MEMORY
 
-#include <stdio.h>
-#include "lorString.h"
 #include <stdlib.h>
+#include <cstring>
 
 #define TRACK_MEMORY 0
 

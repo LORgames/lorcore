@@ -87,3 +87,14 @@ TEST(BasicMath, Round)
   EXPECT_DOUBLE_EQ(1.0, lorRound(0.50));
   EXPECT_DOUBLE_EQ(0.0, lorRound(0.49));
 }
+
+TEST(BasicMath, Random)
+{
+  const uint64_t randomStart = 64;
+  uint64_t randomSeed = randomStart;
+  uint32_t randomVal = lorRandom(randomSeed);
+
+  EXPECT_NE(randomSeed, randomStart);
+  EXPECT_NE(randomSeed, randomVal);
+  EXPECT_NE(randomVal, randomStart);
+}
