@@ -23,6 +23,6 @@ bool lorSocket_IsValidSocket(lorSocket *pSocket);
 bool lorSocket_SendData(lorSocket *pSocket, const uint8_t *pBytes, uint16_t totalBytes);
 int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSize, bool blockForever = false);
 
-bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClientSocket);
+bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClientSocket, uint32_t *pIPv4Address = nullptr);
 
 #endif // LOR_SOCKET
