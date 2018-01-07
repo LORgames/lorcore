@@ -5,6 +5,7 @@
 #include "lorSettings.h"
 #include "lorAudio.h"
 #include "lorHTTP.h"
+#include "lorFile.h"
 
 #include "SDL2/SDL.h"
 
@@ -139,7 +140,11 @@ bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_
     return false;
   }
 
-  if (!lorSocket_InitSystem())
+  const char *pCertificateContents = (const char*)lorFile_LoadAssetFile(ASSETDIR "LORgamesSSLCACertificate.pem");
+  bool createdNetworkingSystem = lorSocket_InitSystem(pCertificateContents);
+  lorFree(pCertificateContents);
+
+  if(!createdNetworkingSystem)
   {
     lorLog("Could not start socket system!");
     return false;

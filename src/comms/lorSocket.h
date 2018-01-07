@@ -5,7 +5,7 @@
 
 struct lorSocket;
 
-bool lorSocket_InitSystem();
+bool lorSocket_InitSystem(const char *pCertificateChain);
 bool lorSocket_DeinitSystem();
 
 enum lorSocketConnectionFlags
@@ -16,7 +16,7 @@ enum lorSocketConnectionFlags
 };
 inline lorSocketConnectionFlags operator |(lorSocketConnectionFlags a, lorSocketConnectionFlags b) { return (lorSocketConnectionFlags)(((int)a) | ((int)b)); }
 
-bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone);
+bool lorSocket_Init(lorSocket **ppSocket, const char *pAddress, uint32_t port, lorSocketConnectionFlags flags = lSCFNone, const char *pPrivateKey = nullptr, const char *pPublicCertificate = nullptr);
 bool lorSocket_Deinit(lorSocket **ppSocket);
 bool lorSocket_IsValidSocket(lorSocket *pSocket);
 
