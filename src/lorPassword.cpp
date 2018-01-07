@@ -45,9 +45,6 @@ const char* lorPassword_Hash(const char *pPassword)
 {
   uint32_t passwordLength = (uint32_t)lorStrlen(pPassword);
 
-  if (passwordLength < 6) //basic complexity requirement
-    return false;
-
   //Generate a salt
   uint64_t saltRNGSeed = lorTime_GetCurrentTimestamp();
   uint8_t salt[DefaultSaltLength];
@@ -88,7 +85,7 @@ const char* lorPassword_Hash(const char *pPassword)
   }
   else
   {
-    lorLog("Uhoh spagettio! Hash failed pretty hard?");
+    return nullptr;
   }
 
   return lorStrdup(returnHash);
@@ -103,9 +100,6 @@ bool lorPassword_Verify(const char *pPassword, const char *pHash, bool *pRequire
     return false;
 
   uint32_t passwordLength = (uint32_t)lorStrlen(pPassword);
-
-  if (passwordLength < 6)
-    return false;
 
   char *pHashDupPtr = lorStrdup(pHash);
   char *pHashDup = pHashDupPtr;
