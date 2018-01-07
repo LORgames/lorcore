@@ -1,6 +1,7 @@
 #include "lorBinary.h"
 #include "lorArray.h"
 #include "lorSocket.h"
+#include "lorFile.h"
 
 enum
 {
@@ -99,6 +100,55 @@ bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket, bool clearB
 
   if(totalBytes > 0 && success)
     success = lorSocket_SendData(pSocket, pBinary->bytes.ppBlocks[i]->data, (uint16_t)totalBytes);
+
+  if (success && clearBuffer)
+    lorBinary_Clear(pBinary);
+
+  return success;
+}
+
+bool lorBinary_ReadFile(lorBinary *pBinary, lorFile *pFile, size_t *pBytesRead /*= nullptr*/)
+{
+  size_t bytesRead = 0;
+  size_t bytesRemainingThisChunk;
+
+  uint32_t caratPos = pBinary->carat;
+
+  if (pBytesRead != nullptr)
+    *pBytesRead = 0;
+
+  do
+  {
+    bytesRemainingThisChunk = ChunkSize - (pBinary->carat % ChunkSize);
+    pBinary->bytes.GrowBack((uint32_t)bytesRemainingThisChunk);
+
+    bytesRead = lorFile_Read(pFile, &pBinary->bytes[pBinary->carat], bytesRemainingThisChunk);
+    pBinary->carat += (uint32_t)bytesRemainingThisChunk;
+
+    if (pBytesRead != nullptr)
+      *pBytesRead += bytesRead;
+  } while (bytesRemainingThisChunk == bytesRead);
+
+  pBinary->carat = caratPos;
+
+  return false;
+}
+
+bool lorBinary_FlushToFile(lorBinary *pBinary, lorFile *pFile, bool clearBuffer /*= true*/)
+{
+  uint32_t totalBytes = pBinary->bytes.length;
+
+  bool success = true;
+
+  int i;
+  for (i = 0; totalBytes >= ChunkSize && success; ++i)
+  {
+    success = (lorFile_Write(pFile, pBinary->bytes.ppBlocks[i]->data, ChunkSize) == ChunkSize);
+    totalBytes -= ChunkSize;
+  }
+
+  if (totalBytes > 0 && success)
+    success = (lorFile_Write(pFile, pBinary->bytes.ppBlocks[i]->data, (uint16_t)totalBytes) == totalBytes);
 
   if (success && clearBuffer)
     lorBinary_Clear(pBinary);
