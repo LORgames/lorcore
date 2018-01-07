@@ -5,6 +5,7 @@
 
 struct lorBinary;
 struct lorSocket; //From lorSocket.h
+struct lorFile; //From lorFile.h
 
 void lorBinary_Init(lorBinary **ppBinary);
 void lorBinary_Deinit(lorBinary **ppBinary);
@@ -19,6 +20,9 @@ void lorBinary_Clear(lorBinary *pBinary);
 
 bool lorBinary_ReadSocket(lorBinary *pBinary, lorSocket *pSocket, int *pBytesRead = nullptr);
 bool lorBinary_FlushToSocket(lorBinary *pBinary, lorSocket *pSocket, bool clearBuffer = true); //Writes entire binary chunk from position 0
+
+bool lorBinary_ReadFile(lorBinary *pBinary, lorFile *pFile, size_t *pBytesRead = nullptr);
+bool lorBinary_FlushToFile(lorBinary *pBinary, lorFile *pFile, bool clearBuffer = true); //Writes entire binary chunk from position 0
 
 //Write Functions
 void lorBinary_WriteInt8(lorBinary *pBinary, const int8_t val);
