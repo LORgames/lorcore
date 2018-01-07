@@ -403,7 +403,7 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
   return 0;
 }
 
-bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClientSocket)
+bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClientSocket, uint32_t *pIPv4Address /*= nullptr*/)
 {
   if (ppClientSocket == nullptr || pServerSocket == nullptr || !pServerSocket->isServer)
     return false;
@@ -425,11 +425,14 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
 
   select(0, &readfds, nullptr, nullptr, &tv);
 
+  uint8_t clientIP[64];
+  size_t clientBytesReturned;
+  if (pIPv4Address != nullptr)
+    *pIPv4Address = 0;
+
   if (pServerSocket->isSecure && FD_ISSET(pServerSocket->tlsClient.socketContext.fd, &readfds))
   {
     mbedtls_net_context clientContext;
-    char clientIP[64];
-    size_t clientBytesReturned;
 
     //Accept the client
     int retVal = mbedtls_net_accept(&pServerSocket->tlsClient.socketContext, &clientContext, clientIP, sizeof(clientIP), &clientBytesReturned);
@@ -438,6 +441,9 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
       lorLog("Failed somehow to accept tls client?");
       return false;
     }
+
+    if(pIPv4Address != nullptr && clientBytesReturned == 4)
+      *pIPv4Address = (clientIP[0] << 24) | (clientIP[1] << 16) | (clientIP[2] << 8) | (clientIP[3]);
 
     (*ppClientSocket) = lorAllocType(lorSocket, 1);
     lorSocket *pClientSocket = *ppClientSocket;
@@ -486,12 +492,22 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   }
   else if (!pServerSocket->isSecure && FD_ISSET(pServerSocket->basicSocket, &readfds))
   {
-    SOCKET clientSocket = accept(pServerSocket->basicSocket, nullptr, nullptr);
+    sockaddr_storage clientAddr;
+    int clientAddrSize = sizeof(clientAddr);
+    SOCKET clientSocket = accept(pServerSocket->basicSocket, (sockaddr*)&clientAddr, &clientAddrSize);
 
     if (clientSocket != INVALID_SOCKET)
     {
       (*ppClientSocket) = lorAllocType(lorSocket, 1);
       (*ppClientSocket)->basicSocket = clientSocket;
+
+      if (pIPv4Address != nullptr)
+      {
+        sockaddr_in *pAddrV4 = (sockaddr_in*)&clientAddr;
+        memcpy(clientIP, &pAddrV4->sin_addr.s_addr, sizeof(pAddrV4->sin_addr.s_addr));
+        *pIPv4Address = (clientIP[0] << 24) | (clientIP[1] << 16) | (clientIP[2] << 8) | (clientIP[3]);
+      }
+
       return true;
     }
   }
