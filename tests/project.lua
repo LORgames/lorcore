@@ -9,6 +9,7 @@ project ("lorcoretests" .. (projectsuffix or ""))
   -- This Project
   files { "src/**.cpp", "src/**.h", "project.lua" }
 
+  includedirs { "../external/src" }
   includedirs { "src" }
 
   links { "googletest" .. (projectsuffix or ""), "mbedtls" .. (projectsuffix or "") }
