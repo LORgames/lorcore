@@ -3,7 +3,12 @@
 
 #include "SDL2/SDL.h"
 
-uint8_t* lorFile_LoadAssetFile(const char *pFilename)
+struct lorFile
+{
+  SDL_RWops *pSDLFile;
+};
+
+uint8_t* lorFile_LoadAssetFile(const char *pFilename, size_t *pNumBytes)
 {
   SDL_RWops *file = SDL_RWFromFile(pFilename, "r");
   if (!file)
@@ -20,6 +25,9 @@ uint8_t* lorFile_LoadAssetFile(const char *pFilename)
   size_t n_blocks = SDL_RWread(file, pDataBuffer, 1, filesize);
   SDL_RWclose(file);
 
+  if (pNumBytes != nullptr)
+    *pNumBytes = n_blocks;
+
   if (n_blocks < 0)
   {
     lorLog("Failed to read: %s", pFilename);
@@ -27,4 +35,68 @@ uint8_t* lorFile_LoadAssetFile(const char *pFilename)
   }
 
   return pDataBuffer;
+}
+
+bool lorFile_OpenAssetFile(lorFile **ppFile, const char *pFilename, lorFileMode fileMode, size_t *pFileSize /*= nullptr*/)
+{
+  SDL_RWops *pSDLFile;
+
+  if (fileMode == lorFM_Read)
+    pSDLFile = SDL_RWFromFile(pFilename, "rb");
+  else if (fileMode == lorFM_Write)
+    pSDLFile = SDL_RWFromFile(pFilename, "wb");
+  else
+    return false;
+
+  if (!pSDLFile)
+    return false;
+
+  if (pFileSize != nullptr)
+    *pFileSize = SDL_RWsize(pSDLFile);
+
+  lorFile *pFile = lorAllocType(lorFile, 1);
+  pFile->pSDLFile = pSDLFile;
+  *ppFile = pFile;
+
+  return true;
+}
+
+bool lorFile_OpenUserFile(lorFile **ppFile, const char *pFilename, lorFileMode fileMode, size_t *pFileSize /*= nullptr*/, const char *pAppName /*= "temp"*/)
+{
+  if (ppFile == nullptr || pFilename == nullptr)
+    return false;
+
+  *ppFile = nullptr;
+
+  char fullPath[1024];
+  lorSprintf(fullPath, sizeof(fullPath), "%s/%s", SDL_GetPrefPath("lorgames", pAppName), pFilename);
+
+  return lorFile_OpenAssetFile(ppFile, fullPath, fileMode, pFileSize);
+}
+
+void lorFile_CloseFile(lorFile **ppFile)
+{
+  if (ppFile == nullptr || *ppFile == nullptr)
+    return;
+
+  SDL_RWclose((*ppFile)->pSDLFile);
+
+  lorFree(*ppFile);
+  *ppFile = nullptr;
+}
+
+size_t lorFile_Read(lorFile *pFile, void *pBuffer, size_t numBytes)
+{
+  if (pFile == nullptr || pBuffer == nullptr || numBytes == 0)
+    return 0;
+
+  return SDL_RWread(pFile->pSDLFile, pBuffer, 1, numBytes);
+}
+
+size_t lorFile_Write(lorFile *pFile, void *pBuffer, size_t numBytes)
+{
+  if (pFile == nullptr || pBuffer == nullptr || numBytes == 0)
+    return 0;
+
+  return SDL_RWwrite(pFile->pSDLFile, pBuffer, 1, numBytes);
 }
