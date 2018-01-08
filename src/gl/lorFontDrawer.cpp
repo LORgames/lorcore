@@ -24,6 +24,7 @@ struct lorFontDrawer
   int32_t totalVertices;
   stbtt_aligned_quad *pVertices;
 
+  float fontSize;
   bool hasChanged;
 
   stbtt_packedchar *pChars;
@@ -43,10 +44,11 @@ void lorFontDrawer_CreateFromTTF(lorFontDrawer **ppFont, uint8_t *pTTFdata, lorG
 
   stbtt_pack_context context;
 
+  (*ppFont)->fontSize = 30;
   (*ppFont)->pChars = lorAllocType(stbtt_packedchar, 223);
 
   stbtt_PackBegin(&context, pPixels, ImageSize, ImageSize, 0, 1, nullptr);
-  stbtt_PackFontRange(&context, pTTFdata, 0, 30, 32, 223, (*ppFont)->pChars);
+  stbtt_PackFontRange(&context, pTTFdata, 0, (*ppFont)->fontSize, 32, 223, (*ppFont)->pChars);
   stbtt_PackEnd(&context);
 
   uint32_t *p32Pixels = lorAllocType(uint32_t, ImageSize * ImageSize);
@@ -80,6 +82,26 @@ void lorFontDrawer_AddString(lorFontDrawer *pFont, int x, int y, const char *pSt
     ++pFont->usedCharacters;
     ++pStr;
   }
+}
+
+lorVec2 lorFontDrawer_MeasureString(lorFontDrawer *pFont, const char *pStr)
+{
+  lorVec2 size = lorVec2::Zero();
+
+  if (pFont == nullptr || pStr == nullptr || pFont->maxCharacters == pFont->usedCharacters)
+    return size;
+
+  stbtt_aligned_quad tempQuad;
+
+  while (*pStr != '\0')
+  {
+    stbtt_GetPackedQuad(pFont->pChars, ImageSize, ImageSize, (*pStr) - 32, &size.x, &size.y, &tempQuad, false);
+    ++pStr;
+  }
+
+  size.y += pFont->fontSize * 2 / 3;
+
+  return size;
 }
 
 void lorFontDrawer_Render(lorFontDrawer *pFont, lorGraphicsCore *pGL, uint32_t colour /*= 0xFFFFFFFF*/)
