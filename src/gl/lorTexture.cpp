@@ -184,6 +184,32 @@ lorTexture* lorTexture_Load(const char *filename, lorTextureType type, lorGraphi
   return pRetTex;
 }
 
+lorTexture* lorTexture_CreateFromPtr(void *pPixels, int width, int height, int channels, lorGraphicsCore *pGL)
+{
+  if (pGL == nullptr || pPixels == nullptr || width <= 0 || height <= 0 || channels < 3 || channels > 4)
+    return nullptr;
+
+  lorTexture *pRetTex = lorAllocType(lorTexture, 1);
+  pRetTex->totalInstances = 1;
+  pRetTex->w = width;
+  pRetTex->h = height;
+  pRetTex->pFilename = nullptr;
+
+  if (channels == 3)
+  {
+    pRetTex->pSDLTexture = SDL_CreateTexture(pGL->pRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, width, height);
+  }
+  else if (channels == 4)
+  {
+    pRetTex->pSDLTexture = SDL_CreateTexture(pGL->pRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, width, height);
+    SDL_SetTextureBlendMode(pRetTex->pSDLTexture, SDL_BLENDMODE_BLEND);
+  }
+
+  SDL_UpdateTexture(pRetTex->pSDLTexture, NULL, pPixels, width * channels);
+
+  return pRetTex;
+}
+
 void lorTexture_Free(lorTexture *pTexture)
 {
   --pTexture->totalInstances;
@@ -216,16 +242,22 @@ void lorTexture_DecrCacheInstance(lorTexture *pTexture)
   --(pTexture->totalInstances);
 }
 
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/)
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/, uint32_t colourMul /*= 0xFFFFFFFF*/)
 {
-  lorTexure_BlitToScreen(pTexture, pGL, pDestRect->x, pDestRect->y, pDestRect->w, pDestRect->h, pSrcRect, flipMode);
+  lorTexure_BlitToScreen(pTexture, pGL, pDestRect->x, pDestRect->y, pDestRect->w, pDestRect->h, pSrcRect, flipMode, colourMul);
 }
 
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/)
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/, uint32_t colourMul /*= 0xFFFFFFFF*/)
 {
   SDL_Rect _dst;
   _dst.x = (int)x;
   _dst.y = (int)y;
+
+  if (colourMul != 0xFFFFFFFF)
+  {
+    SDL_SetTextureColorMod(pTexture->pSDLTexture, (colourMul >> 16) & 0xFF, (colourMul >> 8) & 0xFF, colourMul & 0xFF);
+    SDL_SetTextureAlphaMod(pTexture->pSDLTexture, (colourMul >> 24) & 0xFF);
+  }
 
   if (pSrcRect != nullptr)
   {
@@ -247,11 +279,23 @@ void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x,
 
     SDL_RenderCopyEx(pGL->pRenderer, pTexture->pSDLTexture, nullptr, &_dst, 0, nullptr, (SDL_RendererFlip)flipMode);
   }
+
+  if (colourMul != 0xFFFFFFFF)
+  {
+    SDL_SetTextureColorMod(pTexture->pSDLTexture, 0xFF, 0xFF, 0xFF);
+    SDL_SetTextureAlphaMod(pTexture->pSDLTexture, 0xFF);
+  }
 }
 
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, float w, float h, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/)
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, float w, float h, lorRect *pSrcRect /*= nullptr*/, lorTextureFlipMode flipMode /*= lorFlipMode_None*/, uint32_t colourMul /*= 0xFFFFFFFF*/)
 {
   lorAssert(pTexture != nullptr, "pTexture is a nullptr!");
+
+  if (colourMul != 0xFFFFFFFF)
+  {
+    SDL_SetTextureColorMod(pTexture->pSDLTexture, (colourMul >> 16) & 0xFF, (colourMul >> 8) & 0xFF, colourMul & 0xFF);
+    SDL_SetTextureAlphaMod(pTexture->pSDLTexture, (colourMul >> 24) & 0xFF);
+  }
 
   SDL_Rect _dst;
   _dst.x = (int)x;
@@ -272,5 +316,11 @@ void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x,
   else
   {
     SDL_RenderCopyEx(pGL->pRenderer, pTexture->pSDLTexture, nullptr, &_dst, 0, nullptr, (SDL_RendererFlip)flipMode);
+  }
+
+  if (colourMul != 0xFFFFFFFF)
+  {
+    SDL_SetTextureColorMod(pTexture->pSDLTexture, 0xFF, 0xFF, 0xFF);
+    SDL_SetTextureAlphaMod(pTexture->pSDLTexture, 0xFF);
   }
 }

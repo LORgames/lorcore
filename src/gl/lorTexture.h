@@ -26,13 +26,14 @@ void lorTexture_InitTextureCache();
 void lorTexture_DestroyTextureCache();
 
 lorTexture* lorTexture_Load(const char *filename, lorTextureType type, lorGraphicsCore *pGL);
+lorTexture* lorTexture_CreateFromPtr(void *pPixels, int width, int height, int channels, lorGraphicsCore *pGL);
 void lorTexture_Free(lorTexture *pTexture);
 
 void lorTexture_IncrCacheInstance(lorTexture *pTexture);
 void lorTexture_DecrCacheInstance(lorTexture *pTexture);
 
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);
-void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, float w, float h, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None);
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, lorRect *pDestRect, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None, uint32_t colourMul = 0xFFFFFFFF);
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None, uint32_t colourMul = 0xFFFFFFFF);
+void lorTexure_BlitToScreen(lorTexture *pTexture, lorGraphicsCore *pGL, float x, float y, float w, float h, lorRect *pSrcRect = nullptr, lorTextureFlipMode flipMode = lorFlipMode_None, uint32_t colourMul = 0xFFFFFFFF);
 
 #endif // LOR_TEXTURE
