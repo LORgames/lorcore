@@ -32,9 +32,16 @@ struct lorWindowEventData_Keyboard
   int keyCode;
 };
 
+struct lorWindowEventData_Composition
+{
+  bool applyComposition; // True if apply, false if preview
+  char *pComposition;
+};
+
 typedef void (lorAppResized)(void *pAppData, lorVec2i newSize);
 typedef void (lorCursorEvent)(void *pAppdata, const lorWindowEventData_Cursor &cursorData);
 typedef void (lorKeyboardEvent)(void *pAppdata, const lorWindowEventData_Keyboard &cursorData);
+typedef void (lorCompositionEvent)(void *pAppdata, const lorWindowEventData_Composition &cursorData);
 
 struct lorWindowSettings
 {
@@ -50,6 +57,7 @@ struct lorWindowSettings
 
   lorKeyboardEvent *pKeyDown;
   lorKeyboardEvent *pKeyUp;
+  lorCompositionEvent *pComposition;
 
   const char *pName;
   void *pAppData;

@@ -64,6 +64,14 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
         else if (pCore->pAppSettings->pKeyUp)
           pCore->pAppSettings->pKeyUp(pCore->pAppSettings->pAppData, { pEvent->key.keysym.sym });
         break;
+      case SDL_TEXTINPUT:
+        if (pCore->pAppSettings->pComposition)
+          pCore->pAppSettings->pComposition(pCore->pAppSettings->pAppData, { true, pEvent->text.text });
+        break;
+      case SDL_TEXTEDITING:
+        if (pCore->pAppSettings->pComposition)
+          pCore->pAppSettings->pComposition(pCore->pAppSettings->pAppData, { true, pEvent->edit.text });
+        break;
       case SDL_MOUSEMOTION:
         if (pCore->pAppSettings->pCursorMoved)
           pCore->pAppSettings->pCursorMoved(pCore->pAppSettings->pAppData, { lorMouseCursor, { pEvent->motion.x, pEvent->motion.y }});
