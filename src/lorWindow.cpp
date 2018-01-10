@@ -70,7 +70,7 @@ void lorWindow_ProcessMessageQueue(lorWindow *pCore)
         break;
       case SDL_TEXTEDITING:
         if (pCore->pAppSettings->pComposition)
-          pCore->pAppSettings->pComposition(pCore->pAppSettings->pAppData, { true, pEvent->edit.text });
+          pCore->pAppSettings->pComposition(pCore->pAppSettings->pAppData, { false, pEvent->edit.text });
         break;
       case SDL_MOUSEMOTION:
         if (pCore->pAppSettings->pCursorMoved)
