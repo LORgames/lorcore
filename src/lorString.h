@@ -10,6 +10,9 @@ const char base64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 
 inline size_t lorStrlen(const char *pStr)
 {
+  if (pStr == nullptr)
+    return 0;
+
   size_t len = 0;
   while (pStr[len] != '\0')
     ++len;
@@ -148,5 +151,22 @@ inline int lorSprintf(char *buffer, size_t bufferLen, const char *format, ...)
 
   return retVal;
 }
+
+//UTF8 decoding
+const int lorStringUTF8_End = -1;
+const int lorStringUTF8_Error = -2;
+
+struct lorStringUTF8Context
+{
+  const char *pStr;
+  size_t strLength;
+  int currentIndex;
+};
+
+// Initialize the UTF-8 decoder. The decoder is not reentrant
+void lorStringUTF_StartDecode(lorStringUTF8Context *pContext, const char *pStr);
+
+// Extract the next character. Can return lorStringUTF8_End or lorStringUTF8_Error
+int lorStringUTF_DecodeNextCharacter(lorStringUTF8Context *pContext);
 
 #endif //LOR_STRING
