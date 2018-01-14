@@ -6837,7 +6837,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
         {
             if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
-                return( 0 );
+                return( -1 ); //Paul Fox modified 11th Jan 2018 to alert outside that this is done
 
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
             return( ret );
@@ -6852,7 +6852,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
             {
                 if( ret == MBEDTLS_ERR_SSL_CONN_EOF )
-                    return( 0 );
+                    return( -1 ); //Paul Fox modified 11th Jan 2018 to alert outside that this is done
 
                 MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
                 return( ret );
