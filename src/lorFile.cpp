@@ -45,6 +45,8 @@ bool lorFile_OpenAssetFile(lorFile **ppFile, const char *pFilename, lorFileMode 
     pSDLFile = SDL_RWFromFile(pFilename, "rb");
   else if (fileMode == lorFM_Write)
     pSDLFile = SDL_RWFromFile(pFilename, "wb");
+  else if (fileMode == lorFM_Append)
+    pSDLFile = SDL_RWFromFile(pFilename, "ab");
   else
     return false;
 

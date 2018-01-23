@@ -92,7 +92,7 @@
 #if defined(_MSC_VER) && defined(lorLogToFile)
 #include "lorFile.h"
 #define lorBreak() __debugbreak()
-#define lorLog(fmt, ...) do { lorFile *pFile; if(lorFile_OpenUserFile(&pFile, "lorLog.txt", lorFM_Read)){ char buffer[1024]; size_t len = lorSprintf(buffer, sizeof(buffer), "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); lorFile_Write(pFile, buffer, len); lorFile_CloseFile(&pFile); }} while(0)
+#define lorLog(fmt, ...) do { lorFile *pFile; if(lorFile_OpenUserFile(&pFile, "lorLog.txt", lorFM_Append)){ char buffer[1024]; size_t len = lorSprintf(buffer, sizeof(buffer), "[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); lorFile_Write(pFile, buffer, len); lorFile_CloseFile(&pFile); }} while(0)
 #elif defined(lorLogToFile)
 #error Unsupported Platform for lorLogToFile!
 #elif defined(_MSC_VER)
