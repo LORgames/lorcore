@@ -15,6 +15,8 @@ enum { MemoryPadding = 64 };
 #define lorAllocType(type, count) (type*)lorAlloc(sizeof(type)*(count))
 #endif
 
+#define lorAlloca alloca
+
 inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)
 {
 #if TRACK_MEMORY

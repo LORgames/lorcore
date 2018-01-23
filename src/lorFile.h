@@ -8,7 +8,8 @@ struct lorFile;
 enum lorFileMode
 {
   lorFM_Read,
-  lorFM_Write
+  lorFM_Write,
+  lorFM_Append
 };
 
 uint8_t* lorFile_LoadAssetFile(const char *pFilename, size_t *pNumBytes = nullptr); //Requires lorFree after; returns nullptr on failure

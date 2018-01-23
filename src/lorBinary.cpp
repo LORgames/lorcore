@@ -162,7 +162,7 @@ void lorBinary_WriteInt(lorBinary *pBinary, T val)
   if (pBinary->bytes.length < pBinary->carat + sizeof(T))
     pBinary->bytes.GrowBack(pBinary->carat + sizeof(T) - pBinary->bytes.length);
 
-  for (int i = 0; i < sizeof(T); ++i)
+  for (size_t i = 0; i < sizeof(T); ++i)
   {
     pBinary->bytes[pBinary->carat + i] = (uint8_t)((val >> (i*8)) & 0xFF);
   }
@@ -214,7 +214,7 @@ T lorBinary_ReadInt(lorBinary *pBinary)
   if (pBinary->bytes.length < pBinary->carat + sizeof(T))
     return temp; //This is bad...
 
-  for (int i = 0; i < sizeof(T); ++i)
+  for (size_t i = 0; i < sizeof(T); ++i)
   {
     temp |= (((T)pBinary->bytes[pBinary->carat]) << (i * 8));
     ++pBinary->carat;

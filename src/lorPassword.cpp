@@ -1,6 +1,6 @@
 #include "lorPassword.h"
 
-#include "mbedtls\pkcs5.h"
+#include "mbedtls/pkcs5.h"
 #include "lorString.h"
 #include "lorTime.h"
 
@@ -113,7 +113,7 @@ bool lorPassword_Verify(const char *pPassword, const char *pHash, bool *pRequire
   char *pPwdHash = nullptr;
 
   //lets verify this is a valid hash & split out the strings
-  while(*pHashDup != '\0')
+  while (*pHashDup != '\0')
   {
     if (*pHashDup == '$')
     {
@@ -154,53 +154,55 @@ bool lorPassword_Verify(const char *pPassword, const char *pHash, bool *pRequire
   if (pAlgo == nullptr || pAlgo[0] == '\0' || pComplexity == nullptr || pComplexity[0] == '\0' || pSalt == nullptr || pSalt[0] == '\0' || pPwdHash == nullptr || pPwdHash[0] == '\0')
     goto epilogue;
 
-  uint8_t algorithmVersion = (uint8_t)lorStrAtoI(pAlgo, 16);
-  int complexity = lorStrAtoI(pComplexity, 16);
+  { //Scoped to avoid jump issues
+    uint8_t algorithmVersion = (uint8_t)lorStrAtoI(pAlgo, 16);
+    int complexity = lorStrAtoI(pComplexity, 16);
 
-  if (algorithmVersion > 0 && complexity > 0)
-  {
-    //These get decoded to half the size
-    uint32_t saltLength = (uint32_t)lorStrlen(pSalt) / 2;
-    uint32_t pwdHashLength = (uint32_t)lorStrlen(pPwdHash) / 2;
-
-    char *pSaltBinary = lorAllocType(char, saltLength);
-    char *pPwdHashBinaryOld = lorAllocType(char, pwdHashLength);
-    char *pPwdHashBinaryNew = lorAllocType(char, pwdHashLength);
-
-    for (uint32_t i = 0; i < saltLength; ++i)
+    if (algorithmVersion > 0 && complexity > 0)
     {
-      char *pCS = &pSalt[i * 2];
+      //These get decoded to half the size
+      uint32_t saltLength = (uint32_t)lorStrlen(pSalt) / 2;
+      uint32_t pwdHashLength = (uint32_t)lorStrlen(pPwdHash) / 2;
 
-      int8_t bits0 = (pCS[0] >= '0' && pCS[0] <= '9') ? (pCS[0] - '0') : 10 + (pCS[0] - 'A');
-      int8_t bits1 = (pCS[1] >= '0' && pCS[1] <= '9') ? (pCS[1] - '0') : 10 + (pCS[1] - 'A');
+      char *pSaltBinary = lorAllocType(char, saltLength);
+      char *pPwdHashBinaryOld = lorAllocType(char, pwdHashLength);
+      char *pPwdHashBinaryNew = lorAllocType(char, pwdHashLength);
 
-      pSaltBinary[i] = (bits0 << 4) | bits1;
-    }
-
-    for (uint32_t i = 0; i < pwdHashLength; ++i)
-    {
-      char *pCS = &pPwdHash[i * 2];
-
-      int8_t bits0 = (pCS[0] >= '0' && pCS[0] <= '9') ? (pCS[0] - '0') : 10 + (pCS[0] - 'A');
-      int8_t bits1 = (pCS[1] >= '0' && pCS[1] <= '9') ? (pCS[1] - '0') : 10 + (pCS[1] - 'A');
-
-      pPwdHashBinaryOld[i] = (bits0 << 4) | bits1;
-    }
-
-    //Decode salt and encode pPassword
-    if (lorPassword_HashInternal(algorithmVersion, pPassword, passwordLength, pSaltBinary, saltLength, complexity, pPwdHashBinaryNew, pwdHashLength))
-    {
-      if (memcmp(pPwdHashBinaryNew, pPwdHashBinaryOld, pwdHashLength) == 0)
+      for (uint32_t i = 0; i < saltLength; ++i)
       {
-        retVal = true;
-        if (pRequiresRehash != nullptr && (algorithmVersion != DefaultAlgorithmIndex || complexity != DefaultComplexity))
-          *pRequiresRehash = true; //Does not need a rehash
-      }
-    }
+        char *pCS = &pSalt[i * 2];
 
-    lorFree(pSaltBinary);
-    lorFree(pPwdHashBinaryOld);
-    lorFree(pPwdHashBinaryNew);
+        int8_t bits0 = (pCS[0] >= '0' && pCS[0] <= '9') ? (pCS[0] - '0') : 10 + (pCS[0] - 'A');
+        int8_t bits1 = (pCS[1] >= '0' && pCS[1] <= '9') ? (pCS[1] - '0') : 10 + (pCS[1] - 'A');
+
+        pSaltBinary[i] = (bits0 << 4) | bits1;
+      }
+
+      for (uint32_t i = 0; i < pwdHashLength; ++i)
+      {
+        char *pCS = &pPwdHash[i * 2];
+
+        int8_t bits0 = (pCS[0] >= '0' && pCS[0] <= '9') ? (pCS[0] - '0') : 10 + (pCS[0] - 'A');
+        int8_t bits1 = (pCS[1] >= '0' && pCS[1] <= '9') ? (pCS[1] - '0') : 10 + (pCS[1] - 'A');
+
+        pPwdHashBinaryOld[i] = (bits0 << 4) | bits1;
+      }
+
+      //Decode salt and encode pPassword
+      if (lorPassword_HashInternal(algorithmVersion, pPassword, passwordLength, pSaltBinary, saltLength, complexity, pPwdHashBinaryNew, pwdHashLength))
+      {
+        if (memcmp(pPwdHashBinaryNew, pPwdHashBinaryOld, pwdHashLength) == 0)
+        {
+          retVal = true;
+          if (pRequiresRehash != nullptr && (algorithmVersion != DefaultAlgorithmIndex || complexity != DefaultComplexity))
+            *pRequiresRehash = true; //Does not need a rehash
+        }
+      }
+
+      lorFree(pSaltBinary);
+      lorFree(pPwdHashBinaryOld);
+      lorFree(pPwdHashBinaryNew);
+    }
   }
 
 epilogue:

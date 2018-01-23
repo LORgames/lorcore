@@ -109,7 +109,7 @@ inline bool lorStrEquals(const char *pStrA, const char *pStrB)
 
 inline int lorStrAtoI(const char *pStr, int radix = 10)
 {
-  if (pStr == nullptr || radix < 2 || radix > sizeof(radixAlphabet))
+  if (pStr == nullptr || radix < 2 || (size_t)radix > sizeof(radixAlphabet))
     return 0;
 
   while (*pStr == ' ' || *pStr == '\t' || *pStr == '\n' || *pStr == '\r') //Ignore whitespace at the start
@@ -160,7 +160,7 @@ struct lorStringUTF8Context
 {
   const char *pStr;
   size_t strLength;
-  int currentIndex;
+  size_t currentIndex;
 };
 
 // Initialize the UTF-8 decoder. The decoder is not reentrant
