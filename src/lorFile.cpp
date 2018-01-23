@@ -14,19 +14,19 @@ uint8_t* lorFile_LoadAssetFile(const char *pFilename, size_t *pNumBytes)
   if (!file)
   {
     lorLog("Failed to load: %s", pFilename);
-    return false;
+    return nullptr;
   }
 
   int64_t filesize = SDL_RWsize(file);
   if (filesize < 0)
     filesize = 1024 * 1024 * 4; // 4MB
 
-  uint8_t *pDataBuffer = lorAllocType(unsigned char, filesize);
-  size_t n_blocks = SDL_RWread(file, pDataBuffer, 1, filesize);
+  uint8_t *pDataBuffer = lorAllocType(uint8_t, (size_t)filesize);
+  int64_t n_blocks = SDL_RWread(file, pDataBuffer, 1, (size_t)filesize);
   SDL_RWclose(file);
 
   if (pNumBytes != nullptr)
-    *pNumBytes = n_blocks;
+    *pNumBytes = (size_t)n_blocks;
 
   if (n_blocks < 0)
   {
@@ -52,7 +52,7 @@ bool lorFile_OpenAssetFile(lorFile **ppFile, const char *pFilename, lorFileMode 
     return false;
 
   if (pFileSize != nullptr)
-    *pFileSize = SDL_RWsize(pSDLFile);
+    *pFileSize = (size_t)SDL_RWsize(pSDLFile);
 
   lorFile *pFile = lorAllocType(lorFile, 1);
   pFile->pSDLFile = pSDLFile;

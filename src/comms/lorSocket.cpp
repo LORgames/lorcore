@@ -388,7 +388,7 @@ int lorSocket_ReceiveData(lorSocket *pSocket, uint8_t *pBytes, uint16_t bufferSi
     FD_ZERO(&readfds);
 
     if (pSocket->isSecure)
-      FD_SET(pSocket->tlsClient.socketContext.fd, &readfds);
+      FD_SET((SOCKET)pSocket->tlsClient.socketContext.fd, &readfds);
     else
       FD_SET(pSocket->basicSocket, &readfds);
 
@@ -419,7 +419,7 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   FD_ZERO(&readfds);
 
   if(pServerSocket->isSecure)
-    FD_SET(pServerSocket->tlsClient.socketContext.fd, &readfds);
+    FD_SET((SOCKET)pServerSocket->tlsClient.socketContext.fd, &readfds);
   else
     FD_SET(pServerSocket->basicSocket, &readfds);
 
