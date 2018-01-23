@@ -29,6 +29,34 @@ typedef int SOCKET;
 #define SOCKET_ERROR            (-1)
 #endif //INVALID_SOCKET
 
+#if LORPLATFORM_WINRT || LORPLATFORM_WINPHONE
+#include "lorTime.h"
+
+static bool g_isConfigured = false;
+static uint64_t g_rSeed;
+
+//TODO: Find a proper entropy source for this, after a lot of googling, there is a potential solution using C# only code
+// It looks like https://docs.microsoft.com/en-us/uwp/api/Windows.Security.Cryptography.CryptographicBuffer#Windows_Security_Cryptography_CryptographicBuffer_GenerateRandomNumber
+// Which can be called using https://blogs.msdn.microsoft.com/ujjwalk/2014/05/05/calling-c-code-from-c-for-windows-phone-apps-and-games/
+int lorSocket_WinRTEntropy(void * /*pData*/, unsigned char *pOutput, size_t inLength, size_t *pOutLength)
+{
+  if (!g_isConfigured)
+  {
+    g_isConfigured = true;
+    g_rSeed = ((uint64_t)pOutput * lorTime_GetCurrentTimestamp()); //Secure ;)
+  }
+
+  for (size_t i = 0; i < inLength; ++i)
+  {
+    pOutput[i] = (uint8_t)lorRandom(g_rSeed);
+  }
+
+  *pOutLength = inLength;
+
+  return 0; //0=Success, fail = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
+}
+#endif //LORPLATFORM_WINRT || LORPLATFORM_WINPHONE
+
 static struct
 {
   mbedtls_entropy_context entropy;
@@ -58,6 +86,10 @@ bool lorSocket_InitSystem(const char *pCertificateChain /*= nullptr*/)
 {
   mbedtls_entropy_init(&g_sharedSocketData.entropy);
   mbedtls_x509_crt_init(&g_sharedSocketData.certificateChain);
+
+#if LORPLATFORM_WINRT || LORPLATFORM_WINPHONE
+  mbedtls_entropy_add_source(&g_sharedSocketData.entropy, lorSocket_WinRTEntropy, nullptr, 256, MBEDTLS_ENTROPY_SOURCE_STRONG);
+#endif
 
   //LOAD CA CERTIFICATES
   if (pCertificateChain != nullptr)
