@@ -525,7 +525,7 @@ bool lorSocket_ServerAcceptClient(lorSocket *pServerSocket, lorSocket **ppClient
   else if (!pServerSocket->isSecure && FD_ISSET(pServerSocket->basicSocket, &readfds))
   {
     sockaddr_storage clientAddr;
-    int clientAddrSize = sizeof(clientAddr);
+    socklen_t clientAddrSize = sizeof(clientAddr);
     SOCKET clientSocket = accept(pServerSocket->basicSocket, (sockaddr*)&clientAddr, &clientAddrSize);
 
     if (clientSocket != INVALID_SOCKET)
