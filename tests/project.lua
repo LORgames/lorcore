@@ -18,15 +18,18 @@ project ("lorcoretests" .. (projectsuffix or ""))
   links { "lorcore" .. (projectsuffix or "") }
   includedirs { "../src" }
 
+  links { "SDL2" }
+
   -- Configurations
   filter { "configurations:Release" }
     defines { "NDEBUG" }
-    flags { "Optimize", "NoFramePointer" }
+    flags { "NoFramePointer" }
+    optimize "On"
     symbols "On"
 
   filter { "configurations:Debug", "system:not android" }
     defines { "_DEBUG" }
-    symbols "On"
+    symbols "Full"
 
   filter { "system:windows*", "system:not windows" }
     disablewarnings { "4127", "4530" }
@@ -37,6 +40,7 @@ project ("lorcoretests" .. (projectsuffix or ""))
 
   filter { "architecture:x64", "system:windows" }
     defines { "WIN64" }
+    prebuildcommands { "{COPY} ../external/dlls/win64 %{cfg.targetdir}" }
 
   filter { "architecture:x64", "system:windowsstore8.1" }
     defines { "WIN64" }
@@ -48,9 +52,16 @@ project ("lorcoretests" .. (projectsuffix or ""))
     location "."
     warnings "Off"
 
+  filter { "system:linux" }
+    linkgroups "On"
+    links { "pthread" }
+
+  filter { "system:macosx" }
+    removelinks { "SDL2.framework" }
+
   filter { "system:android" }
     toolset "clang"
-    toolchainversion "3.6"
+    toolchainversion "3.8"
     stl "gnu stl static"
     defines { "ASSETDIR=\"\"" } -- Is ASSETDIR required here?
 

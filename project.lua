@@ -23,7 +23,8 @@ project ("lorcore" .. (projectsuffix or ""))
   -- Configurations
   filter { "configurations:Release" }
     defines { "NDEBUG" }
-    flags { "Optimize", "NoFramePointer" }
+    flags { "NoFramePointer" }
+    optimize "On"
     symbols "On"
     --flags { "NoBufferSecurityCheck" }
 
@@ -78,7 +79,7 @@ project ("lorcore" .. (projectsuffix or ""))
 
   filter { "system:android" }
     toolset "clang"
-    toolchainversion "3.6"
+    toolchainversion "3.8"
     stl "gnu stl static"
     defines { "ASSETDIR=\"\"" } -- Is ASSETDIR required here?
 
