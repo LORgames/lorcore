@@ -4,11 +4,26 @@
 #include "lorFile.h"
 #include "lorTexture.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wall"
+# pragma GCC diagnostic ignored "-Wextra"
+# pragma GCC diagnostic ignored "-Wtype-limits"
+# if !defined(__clang__)
+#  pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#  pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+# endif
+#endif
+
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb/stb_rect_pack.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb/stb_truetype.h"
+
+#if defined(__GNUC__) || defined(__clang__)
+# pragma GCC diagnostic pop
+#endif
 
 enum
 {
