@@ -41,6 +41,7 @@ project ("lorcoretests" .. (projectsuffix or ""))
   filter { "architecture:x64", "system:windows" }
     defines { "WIN64" }
     prebuildcommands { "{COPY} ../external/dlls/win64 %{cfg.targetdir}" }
+    libdirs { "../external/libs/win64" }
 
   filter { "architecture:x64", "system:windowsstore8.1" }
     defines { "WIN64" }
