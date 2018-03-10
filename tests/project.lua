@@ -69,5 +69,10 @@ project ("lorcoretests" .. (projectsuffix or ""))
   filter { "system:windows", "configurations:Release", "action:vs2013" }
     buildoptions { "/Zo" }
 
+  filter { "options:coverage", "system:linux", "configurations:debug", "toolset:gcc" }
+    symbols "On"
+    optimize "Off"
+    linkoptions { "--coverage" }
+
   filter { }
 

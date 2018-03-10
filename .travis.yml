@@ -6,13 +6,17 @@ matrix:
     - os: linux
       compiler: gcc
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--coverage && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - libsdl2-dev
+            - gcovr
+      after_script:
+        - gcovr -r .
+        - bash <(curl -s https://codecov.io/bash)
     - os: linux
       compiler: gcc
       env:
@@ -26,7 +30,7 @@ matrix:
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS="--cc=clang" && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--cc=clang && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
@@ -36,7 +40,7 @@ matrix:
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS="--cc=clang" && BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--cc=clang && BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
