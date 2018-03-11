@@ -72,6 +72,7 @@ project ("lorcoretests" .. (projectsuffix or ""))
   filter { "options:coverage", "system:linux", "configurations:debug", "toolset:gcc" }
     symbols "On"
     optimize "Off"
+    buildoptions { "-fprofile-arcs", "-ftest-coverage" }
     linkoptions { "--coverage" }
 
   filter { }

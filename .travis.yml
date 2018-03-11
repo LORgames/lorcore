@@ -3,10 +3,11 @@ dist: trusty
 sudo: false
 matrix:
   include:
+  # Linux Debug GCC
     - os: linux
       compiler: gcc
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--coverage && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
@@ -14,50 +15,69 @@ matrix:
           packages:
             - libsdl2-dev
             - gcovr
+      before_script:
+        - tools/premake/premake5 gmake --coverage
       after_script:
-        - gcovr -r .
         - bash <(curl -s https://codecov.io/bash)
+  # Linux Release GCC
     - os: linux
       compiler: gcc
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - libsdl2-dev
+      before_script:
+        - tools/premake/premake5 gmake
+  # Linux Debug Clang
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--cc=clang && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - libsdl2-dev
+      before_script:
+        - tools/premake/premake5 gmake --cc=clang
+  # Linux Release Clang
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="PREMAKE_BINARY=premake5 && PREMAKE_ACTION=gmake && PREMAKE_OPTIONS=--cc=clang && BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
+        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - libsdl2-dev
+      before_script:
+        - tools/premake/premake5 gmake --cc=clang
+  # macOS Debug
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="brew update && brew install sdl2 && PREMAKE_BINARY=premake5-osx && PREMAKE_ACTION=gmake && BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_macosx"
+        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_macosx"
+      before_script:
+        - brew update
+        - brew install sdl2
+        - tools/premake/premake5-osx gmake
+  # macOS Debug
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="brew update && brew install sdl2 && PREMAKE_BINARY=premake5-osx && PREMAKE_ACTION=gmake && BUILD_CONFIG=release && OUTPUT_FOLDER=bin_macosx"
+        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_macosx"
+      before_script:
+        - brew update
+        - brew install sdl2
+        - tools/premake/premake5-osx gmake
 
 script:
  - eval "${MATRIX_EVAL}"
- - tools/premake/${PREMAKE_BINARY} ${PREMAKE_ACTION} ${PREMAKE_OPTIONS}
  - make -j4 config=${BUILD_CONFIG}_x64
  - builds/${OUTPUT_FOLDER}/lorcoretests
