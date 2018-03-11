@@ -22,6 +22,12 @@ newoption
   }
 }
 
+newoption
+{
+  trigger = "coverage",
+  description = "Emit code coverage details",
+}
+
 workspace "lorcore"
   if _ACTION == "gmake" then
     configurations { "Release", "Debug" }
