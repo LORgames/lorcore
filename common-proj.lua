@@ -18,7 +18,8 @@ filter { "system:ios" }
   objdir "intermediate/obj_ios"
   targetdir "%{_MAIN_SCRIPT_DIR}/builds/bin_ios"
   debugdir "%{_MAIN_SCRIPT_DIR}/builds/bin_ios"
-  links { "CoreAudio.framework", "AudioToolbox.framework", "CoreFoundation.framework", "CoreGraphics.framework", "Foundation.framework", "UIKit.framework", "OpenGLES.framework", "QuartzCore.framework" }
+  links { "CoreAudio.framework", "AudioToolbox.framework", "CoreFoundation.framework", "CoreGraphics.framework", "Foundation.framework", "UIKit.framework", "OpenGLES.framework", "QuartzCore.framework", "AVFoundation.framework", "GameController.framework", "CoreMotion.framework" }
+  xcodebuildsettings { ["CLANG_CXX_LANGUAGE_STANDARD"] = "c++11" }
 
 filter { "architecture:x86", "system:android" }
   defines { "ANDROID" }
