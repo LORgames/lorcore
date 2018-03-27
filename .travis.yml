@@ -7,7 +7,7 @@ matrix:
     - os: linux
       compiler: gcc
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - BUILD_INFO="Linux-Debug-GCC"
       addons:
         apt:
           sources:
@@ -17,13 +17,16 @@ matrix:
             - gcovr
       before_script:
         - tools/premake/premake5 gmake --coverage
+      script:
+        - make -j4 config=debug_x64
+        - builds/bin_linux/lorcoretests
       after_script:
         - bash <(curl -s https://codecov.io/bash)
   # Linux Release GCC
     - os: linux
       compiler: gcc
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
+        - BUILD_INFO="Linux-Release-GCC"
       addons:
         apt:
           sources:
@@ -32,11 +35,14 @@ matrix:
             - libsdl2-dev
       before_script:
         - tools/premake/premake5 gmake
+      script:
+        - make -j4 config=release_x64
+        - builds/bin_linux/lorcoretests
   # Linux Debug Clang
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_linux"
+        - BUILD_INFO="Linux-Debug-Clang"
       addons:
         apt:
           sources:
@@ -45,11 +51,14 @@ matrix:
             - libsdl2-dev
       before_script:
         - tools/premake/premake5 gmake --cc=clang
+      script:
+        - make -j4 config=debug_x64
+        - builds/bin_linux/lorcoretests
   # Linux Release Clang
     - os: linux
       compiler: clang
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_linux"
+        - BUILD_INFO="Linux-Release-Clang"
       addons:
         apt:
           sources:
@@ -58,26 +67,48 @@ matrix:
             - libsdl2-dev
       before_script:
         - tools/premake/premake5 gmake --cc=clang
+      script:
+        - make -j4 config=release_x64
+        - builds/bin_linux/lorcoretests
   # macOS Debug
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=debug && OUTPUT_FOLDER=bin_macosx"
+        - BUILD_INFO="macOS-Debug"
       before_script:
         - brew update
         - brew install sdl2
         - tools/premake/premake5-osx gmake
-  # macOS Debug
+      script:
+        - make -j4 config=debug_x64
+        - builds/bin_macosx/lorcoretests
+  # macOS Release
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="BUILD_CONFIG=release && OUTPUT_FOLDER=bin_macosx"
+        - BUILD_INFO="macOS-Release"
       before_script:
         - brew update
         - brew install sdl2
         - tools/premake/premake5-osx gmake
-
-script:
- - eval "${MATRIX_EVAL}"
- - make -j4 config=${BUILD_CONFIG}_x64
- - builds/${OUTPUT_FOLDER}/lorcoretests
+      script:
+        - make -j4 config=release_x64
+        - builds/bin_macosx/lorcoretests
+  # iOS Debug
+    - os: osx
+      osx_image: xcode9
+      env:
+        - BUILD_INFO="iOS-Debug"
+      before_script:
+        - tools/premake/premake5-osx xcode4 --system=ios
+      script:
+        - xcodebuild -project tests/lorcoretests.xcodeproj -configuration Debug -arch x86_64 -sdk iphonesimulator
+  # iOS Release
+    - os: osx
+      osx_image: xcode9
+      env:
+        - BUILD_INFO="iOS-Release"
+      before_script:
+        - tools/premake/premake5-osx xcode4 --system=ios
+      script:
+        - xcodebuild -project tests/lorcoretests.xcodeproj -configuration Release -arch x86_64 -sdk iphonesimulator

@@ -60,6 +60,11 @@ project ("lorcoretests" .. (projectsuffix or ""))
   filter { "system:macosx" }
     removelinks { "SDL2.framework" }
 
+  filter { "system:ios" }
+    kind "WindowedApp"
+    libdirs { "../external/libs/iOS" }
+    files { "Info.plist" }
+
   filter { "system:android" }
     toolset "clang"
     toolchainversion "3.8"

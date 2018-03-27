@@ -1,8 +1,8 @@
 # LORgames Core Library
 
-| Linux & macOS | Windows | CodeCov |
+| iOS, Linux & macOS | Windows | CodeCov |
 | :---- | :---- | :---- |
-[ ![Linux & macOS build status][1]][2] | [![Windows build status][3]][4] | [![Code coverage status][5]][6] |
+[ ![iOS, Linux & macOS build status][1]][2] | [![Windows build status][3]][4] | [![Code coverage status][5]][6] |
 
 [1]: https://travis-ci.org/LORgames/lorcore.svg?branch=master
 [2]: https://travis-ci.org/LORgames/lorcore
