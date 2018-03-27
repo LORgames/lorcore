@@ -4,10 +4,28 @@ image:
 
 platform:
   - x64
+  - x86
+  - ARM
 
 configuration:
   - Debug
   - Release
+
+environment:
+  matrix:
+    - PREMAKE_OPTIONS: --system=windows
+    - PREMAKE_OPTIONS: --system=android
+
+matrix:
+  exclude:
+    - platform: x64
+      PREMAKE_OPTIONS: --system=android
+    - platform: x86
+      PREMAKE_OPTIONS: --system=windows
+    - platform: ARM
+      PREMAKE_OPTIONS: --system=windows
+    - image: Visual Studio 2015
+      PREMAKE_OPTIONS: --system=android
 
 before_build:
   - cmd: git clean -ffxd
@@ -20,12 +38,12 @@ build_script:
       {
         & "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
         & "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
-        tools\premake\premake5.exe vs2015
+        tools\premake\premake5.exe vs2015 PREMAKE_OPTIONS
       }
       if ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2017")
       {
         & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-        tools\premake\premake5.exe vs2017
+        tools\premake\premake5.exe vs2017 PREMAKE_OPTIONS
       }
       msbuild.exe lorcore.sln /p:Configuration=$env:CONFIGURATION /p:Platform=$env:PLATFORM
 

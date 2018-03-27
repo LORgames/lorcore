@@ -12,11 +12,11 @@ project ("lorcoretests" .. (projectsuffix or ""))
   includedirs { "../external/src" }
   includedirs { "src" }
 
-  links { "googletest" .. (projectsuffix or ""), "mbedtls" .. (projectsuffix or "") }
-  includedirs { "../external/src/googletest/include" }
-
   links { "lorcore" .. (projectsuffix or "") }
   includedirs { "../src" }
+
+  links { "googletest" .. (projectsuffix or ""), "mbedtls" .. (projectsuffix or "") }
+  includedirs { "../external/src/googletest/include" }
 
   links { "SDL2" }
 
@@ -66,10 +66,17 @@ project ("lorcoretests" .. (projectsuffix or ""))
     files { "Info.plist" }
 
   filter { "system:android" }
+    kind "SharedLib"
     toolset "clang"
     toolchainversion "3.8"
     stl "gnu stl static"
     defines { "ASSETDIR=\"\"" } -- Is ASSETDIR required here?
+
+  filter { "system:android", "architecture:x86" }
+    libdirs { "../external/libs/androidx86" }
+
+  filter { "system:android", "architecture:arm" }
+    libdirs { "../external/libs/androidarm" }
 
   filter { "system:windows", "configurations:Release", "action:vs2013" }
     buildoptions { "/Zo" }
