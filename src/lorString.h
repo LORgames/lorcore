@@ -63,6 +63,19 @@ inline void lorStrcpy(char *strDestination, size_t destinationSize, const char *
   strDestination[i] = '\0';
 }
 
+inline void lorStrncpy(char *strDestination, size_t destinationSize, const char *strSource, size_t numBytesCopy)
+{
+  size_t i = 0;
+
+  while (i < destinationSize && i < numBytesCopy && strSource[i] != '\0')
+  {
+    strDestination[i] = strSource[i];
+    ++i;
+  }
+
+  strDestination[i] = '\0';
+}
+
 inline void lorStrcat(char *strDestination, size_t destinationSize, const char *strSource)
 {
   size_t writePos = strlen(strDestination);
@@ -103,6 +116,22 @@ inline bool lorStrEquals(const char *pStrA, const char *pStrB)
 
   while (result && *pA++ && *pB++)
     result = (*pA == *pB);
+
+  return result;
+}
+
+inline bool lorStrBeginsWith(const char *pStrA, const char *pStrB)
+{
+  const char *pA = (pStrA == nullptr) ? "" : pStrA;
+  const char *pB = (pStrB == nullptr) ? "" : pStrB;
+
+  bool result = true;
+
+  while (result && *pA++ && *pB++)
+    result = (*pA == *pB);
+
+  if (*pB == '\0')
+    return true;
 
   return result;
 }

@@ -16,6 +16,9 @@ TEST(lorString, BasicTests)
   EXPECT_TRUE(lorStrEquals(helloStr, buffer));
   EXPECT_EQ(0, lorStrcmp(helloStr, buffer));
 
+  EXPECT_TRUE(lorStrBeginsWith(fullStr, helloStr));
+  EXPECT_FALSE(lorStrBeginsWith(helloStr, extraStr));
+
   lorStrcat(buffer, sizeof(buffer), " ");
   lorStrcat(buffer, sizeof(buffer), extraStr);
   EXPECT_TRUE(lorStrEquals(buffer, fullStr));

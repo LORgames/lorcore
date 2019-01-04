@@ -1,7 +1,6 @@
-#ifndef LOR_AUTH
-#define LOR_AUTH
+#ifndef LOR_HTTP
+#define LOR_HTTP
 
-void lorAuth_Init();
-void lorAuth_Close();
+bool lorHTTP_Request(const char **ppResponse, const char *pAddress, const char *pPayload = nullptr);
 
-#endif // LOR_AUTH
+#endif // LOR_HTTP
