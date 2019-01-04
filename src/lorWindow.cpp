@@ -166,8 +166,6 @@ bool lorWindow_Init(lorWindow **ppCore, lorWindowSettings *pAppSettings, uint32_
   pCore->now = SDL_GetTicks();
   pCore->nextTime = (float)pCore->now + pAppSettings->FrameMilliseconds;
 
-  lorAuth_Init();
-
   pCore->pAppSettings = pAppSettings;
   SDL_GetWindowSize(pCore->gWindow, &pAppSettings->Width, &pAppSettings->Height);
 
@@ -211,8 +209,6 @@ bool lorWindow_Exit(lorWindow **ppCore)
   lorAudio_Deinit(&pCore->pAudioCore);
   lorGraphicsCore_Destroy(&pCore->pGLCore);
   lorFree(pCore);
-
-  lorAuth_Close();
 
   if (!lorSocket_DeinitSystem())
     return false;

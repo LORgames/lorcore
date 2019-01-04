@@ -27,7 +27,7 @@ inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)
   void* pMemory = malloc(numBytes);
 #endif
 
-  if (zero)
+  if (zero && pMemory != nullptr)
     memset(pMemory, 0, numBytes);
 
   return pMemory;
@@ -37,6 +37,9 @@ inline void* lorAlloc(size_t numBytes, bool zero = true MEMORY_LINEFILE)
 
 inline void _lorFree(void *&pPtr)
 {
+  if (pPtr == nullptr)
+    return;
+
 #if TRACK_MEMORY
   free((char*)pPtr - MemoryPadding);
 #else

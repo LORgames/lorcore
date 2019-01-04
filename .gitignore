@@ -1,3 +1,6 @@
 /intermediate/
 /builds/
 *.vcxproj*
+*.sln
+*.VC.*
+*.suo
